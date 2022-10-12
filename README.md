@@ -7,7 +7,7 @@ Code for the paper [Multi-Branch with Attention Network for Hand-Based Person Re
 In this paper, we propose a novel hand-based person recognition method for the purpose of criminal investigations since the hand image is often the only available information in cases of serious crime such as sexual abuse. Our proposed method, Multi-Branch with Attention Network (MBA-Net), incorporates both channel and spatial attention modules in branches in addition to a global (without attention) branch to capture global structural information for discriminative feature learning. The attention modules focus on the relevant features of the hand image while suppressing the irrelevant backgrounds. In order to overcome the weakness of the attention mechanisms, equivariant to pixel shuffling, we integrate relative positional encodings into the spatial attention module to capture the spatial positions of pixels. Extensive evaluations on two large multi-ethnic and publicly available hand datasets demonstrate that our proposed method achieves state-of-the-art performance, surpassing the existing hand-based identification methods. 
 
 
-The proposed attention modules and the structure MBA-Net are shown below.
+The proposed attention modules and the structure of MBA-Net are shown below.
 
 a) Channel Attention Module (CAM):
 
@@ -23,11 +23,12 @@ c) MBA-Net:
 
 
 
-The qualitative results of our proposed method is shown below. 
+The qualitative results of our proposed method are also shown below. 
 
 ![](./doc_images/results_demo.png)
+
 Some qualitative results of our method using query vs
-ranked results retrieved from gallery. From top to bottom row
+ranked results retrieved from gallery are shown in the Fig. above. From top to bottom row
 are HD, left palmar of 11k, right palmar of 11k, left dorsal
 of 11k and right dorsal of 11k datasets. The green and red
 bounding boxes denote the correct and the wrong matches,
@@ -50,9 +51,10 @@ We use [11k](https://sites.google.com/view/11khands) and [HD](http://www4.comp.p
     Hands/
     HandInfo.csv
 ```
-Then you can run following code to prepare the 11k dataset: `prepare_train_val_test_11k_r_l.py`
+Then you can run following code to prepare the 11k dataset: 
+`python prepare_train_val_test_11k_r_l.py`
 
-2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to /MBA-Net/11k/ from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
+2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to /MBA-Net/HD/ from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
 
 ```
 HD/
@@ -60,11 +62,12 @@ HD/
     Segmented Images/
     ReadMe.txt
 ```
-Then you can run following code to prepare the HD dataset: `prepare_train_val_test_hd.py`
+Then you can run following code to prepare the HD dataset: 
+`python prepare_train_val_test_hd.py`
 
 
 ## Train
-To train on 11k dorsal right dataset, run:  
+To train on the 11k dorsal right dataset, run:  
 `python train.py --data_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --data_type 11k --m_name ResNet50_MBA`
 
 Please look into the `train.py` for more details. You need to provide the correct dataset i.e. right dorsal of 11k, left dorsal of 11k, right palmar of 11k, left palmar of 11k or HD dataset. 
