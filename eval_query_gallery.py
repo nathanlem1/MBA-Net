@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 import numpy as np
 import torch
@@ -10,7 +11,12 @@ import scipy.io
 import yaml
 
 from evaluation_metrics import compute_CMC_mAP
-from MBA.MBA import MBA
+
+# Adding Folder MBA to the system path. Note that a module is just a Python program that ends with .py extension and a
+# folder that contains a module becomes a package.
+sys.path.insert(0, './MBA')
+from MBA import MBA
+# from MBA.MBA import MBA
 
 try:
     from apex.fp16_utils import *
