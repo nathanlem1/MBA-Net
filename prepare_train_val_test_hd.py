@@ -55,6 +55,8 @@ if not os.path.isdir(train_save_path):
     os.mkdir(test_save_path)
 
 
+print('---------- Data preparation has started ----------------')
+
 # train_all (train + val) and test split. The first 251 identities for train_all and the last 251 identities for test
 for root, dirs, files in os.walk(train_path, topdown=True):
     for name in files:

@@ -52,32 +52,45 @@ We use [11k](https://sites.google.com/view/11khands) and [HD](http://www4.comp.p
     HandInfo.csv
 ```
 Then you can run following code to prepare the 11k dataset: 
+
 `python prepare_train_val_test_11k_r_l.py`
 
-2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to /MBA-Net/HD/ from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
+2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/HD/` from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
 
 ```
 HD/
-    Original Images/
-    Segmented Images/
-    ReadMe.txt
+   Original Images/
+   Segmented Images/
+   ReadMe.txt
 ```
 Then you can run following code to prepare the HD dataset: 
+
 `python prepare_train_val_test_hd.py`
 
 
 ## Train
 To train on the 11k dorsal right dataset, run:  
+
 `python train.py --data_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --data_type 11k --m_name ResNet50_MBA`
 
 Please look into the `train.py` for more details. You need to provide the correct dataset i.e. right dorsal of 11k, left dorsal of 11k, right palmar of 11k, left palmar of 11k or HD dataset. 
+You may need to change the name of `Original Images` in `HD/Original Images/` to `Original_Images` so that it can look like `HD/Original_Images/`. This helps to use it on command line to train the model on `HD` dataset.
+Thus, to train on the HD dataset, run:
+
+`python train.py --data_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --data_type HD --m_name ResNet50_MBA`
 
 
 ## Evaluate
-To evaluate, run:
+To evaluate, for instance, on the 11k dorsal right dataset, run:
+
 `python eval_query_gallery.py --test_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --m_name ResNet50_MBA`
 
-Please look into the `eval_query_gallery.py` for more details. You can use `query_ranking_result_demo.py` to produce qualitative results.
+Please look into the `eval_query_gallery.py` for more details. In case you are using a command line, you can run on the HD dataset
+after changing `Original Images` in `HD/Original Images/` to `Original_Images` using:
+
+`python eval_query_gallery.py --test_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --m_name ResNet50_MBA`
+
+In addition, you can use `query_ranking_result_demo.py` to produce qualitative results.
 
 
 ## Citation

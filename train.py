@@ -63,7 +63,7 @@ parser.add_argument('--data_dir',
 parser.add_argument('--f_name', default='./model_11k_d_r', type=str,
                     help='Output folder name - ./model_HD or '  # For HD dataset
                          './model_11k_d_r'  './model_11k_d_l'  './model_11k_p_r'  './model_11k_p_l')  # For 11k dataset
-parser.add_argument('--data_type', default='11k', type=str, help='Data type: hd or 11k')
+parser.add_argument('--data_type', default='11k', type=str, help='Data type: 11k or HD')
 parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
                     help='Output model name - ResNet50_MBA for ResNet50 with MBA model.')
 parser.add_argument('--train_all', action='store_true', help='use all training data')

@@ -99,10 +99,13 @@ if not os.path.isdir(train_save_path_palmar_l):
     os.mkdir(test_save_path_palmar_l)
 
 
+print('---------- Data preparation has started ----------------')
+
 # train_all (train + val) and test split. The first half identities for train_all (dorsal right - 72, dorsal left - 73,
 # palmar right - 72 and palmar left - 76) and the last identities for test (dorsal right - 71, dorsal left - 73, palmar
 # right - 71 and palmar left - 75). By keeping the first half identities for training, we cut and paste the last rest of
 # identities into a test folder
+
 count_id = 0
 for row in reader:
     id = row['id']
@@ -114,6 +117,8 @@ for row in reader:
         if int(id) <= 1050:  # train_all
             dst_path_dorsal = train_all_save_path_dorsal_r + '/' + id
         else:  # test
+            if int(id) == 1200000:   # To change '1200000 ' to '1200000'. One image has this deviation!
+                id = '1200000'
             dst_path_dorsal = test_save_path_dorsal_r + '/' + id
         if not os.path.isdir(dst_path_dorsal):
             os.mkdir(dst_path_dorsal)

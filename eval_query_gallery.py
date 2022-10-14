@@ -179,7 +179,7 @@ def get_id(img_path):
 
 
 # Load Collected data Trained model
-print('-------Test started ------------------')
+print('-------Test has started ------------------')
 
 model_structure = MBA(opt.num_classes, use_biDir_relation=opt.use_biDir_relation, attention_fn=opt.attention_fn,
                       relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
@@ -196,12 +196,12 @@ if use_gpu:
 
 # For N = 10 Monte Carlo runs
 # You can change the data_type in opts.yaml if you want to perform cross-domain performance evaluation!
-if opt.data_type == 'hd':
-    galleries = ['gallery0', 'gallery1', 'gallery2', 'gallery3', 'gallery4', 'gallery5', 'gallery6', 'gallery7',
-                 'gallery8', 'gallery9']   # For HD
-elif opt.data_type == '11k':
+if opt.data_type == '11k':
     galleries = ['gallery0_all', 'gallery1_all', 'gallery2_all', 'gallery3_all', 'gallery4_all', 'gallery5_all',
                  'gallery6_all', 'gallery7_all', 'gallery8_all', 'gallery9_all']  # For 11k
+elif opt.data_type == 'HD':
+    galleries = ['gallery0', 'gallery1', 'gallery2', 'gallery3', 'gallery4', 'gallery5', 'gallery6', 'gallery7',
+                 'gallery8', 'gallery9']   # For HD
 else:
     print('Please choose the correct data type!')
     exit()
