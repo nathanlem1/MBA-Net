@@ -79,7 +79,7 @@ if not os.path.isdir(save_path_palmar_l):
 train_all_save_path_palmar_r = save_path_palmar_r + '/train_all'
 train_save_path_palmar_r = save_path_palmar_r + '/train'
 val_save_path_palmar_r = save_path_palmar_r + '/val'
-test_save_path_palmar_r =save_path_palmar_r + '/test'
+test_save_path_palmar_r = save_path_palmar_r + '/test'
 if not os.path.isdir(train_all_save_path_palmar_r):
     os.mkdir(train_all_save_path_palmar_r)
 if not os.path.isdir(train_save_path_palmar_r):
@@ -153,7 +153,7 @@ for row in reader:
 # train_val for Dorsal i.e. split train_all (after the test part is removed) into train and val
 for root, dirs, files in os.walk(train_all_save_path_dorsal_r, topdown=True):  # Dorsal right
     for dir_name in dirs:
-        for root_n, dirs_n, files_n in os.walk(train_all_save_path_dorsal_r+ '/' + dir_name):
+        for root_n, dirs_n, files_n in os.walk(train_all_save_path_dorsal_r + '/' + dir_name):
             val_ind = np.random.randint(0, len(files_n))  # Take randomly
             val_file_name = files_n[val_ind]
             for name in files_n:

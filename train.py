@@ -22,8 +22,8 @@ matplotlib.use('agg')
 # Adding Folder MBA to the system path. Note that a module is just a Python program that ends with .py extension and a
 # folder that contains a module becomes a package.
 sys.path.insert(0, './MBA')
-from MBA import MBA
-# from MBA.MBA import MBA
+from MBA import ResNet50_MBA
+# from MBA.MBA import ResNet50_MBA
 
 from label_smoothing_cross_entropy_loss import LabelSmoothingCrossEntropyLoss
 from lr_scheduler import LRScheduler
@@ -71,7 +71,7 @@ parser.add_argument('--batch_size', default=4, type=int, help='batch_size')  # 1
 parser.add_argument('--color_jitter', action='store_true', help='use color jitter in training')
 parser.add_argument('--erasing_p', default=0, type=float, help='Random Erasing probability, in [0,1]')
 parser.add_argument('--ls', action='store_true', help='Use label smoothing with cross entropy.')
-parser.add_argument('--lr', default=0.02, type=float, help='learning rate for new parameters, try 0.015, 0.02, 0.05, '
+parser.add_argument('--lr', default=0.02, type=float, help='learning rate for new parameters, try 0.015, 0.02, 0.05,'
                                                            'For pretrained parameters, it is 10 times smaller than this')
 parser.add_argument('--dropout', default=0.5, type=float, help='dropout rate')
 parser.add_argument('--optimizer', default='adam', type=str, help='Optimizer to use: sgd or adam')
@@ -129,14 +129,14 @@ if len(gpu_ids) > 0 and device == 'cuda':
 # Load Data
 
 transform_train_list = [
-    transforms.Resize((356, 356), interpolation=3),
+    transforms.Resize((356, 356), transforms.InterpolationMode.BICUBIC),
     transforms.RandomCrop((324, 324)),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]
 transform_val_list = [
-    transforms.Resize(size=(324, 324), interpolation=3),  # Image.BICUBIC
+    transforms.Resize((324, 324), transforms.InterpolationMode.BICUBIC),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]
@@ -183,7 +183,6 @@ print(time.time()-since)
 # -  Scheduling the learning rate
 # -  Saving the best model
 #
-# In the following, parameter 'scheduler' is an LR scheduler object from 'torch.optim.lr_scheduler'.
 # ----------------------------------------------------------------------------------------------------------------------
 
 y_loss = dict()  # Loss history
@@ -194,7 +193,7 @@ y_err['train'] = []
 y_err['val'] = []
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion, optimizer, scheduler, num_epochs=70):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -335,8 +334,9 @@ def save_network(network, epoch_label):
 
 
 # Fine-tuning the ConvNet
-model = MBA(len(class_names), use_biDir_relation=opt.use_biDir_relation, attention_fn=opt.attention_fn,
-            relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v, use_attention=opt.use_attention)
+model = ResNet50_MBA(len(class_names), use_biDir_relation=opt.use_biDir_relation, attention_fn=opt.attention_fn,
+                     relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
+                     use_attention=opt.use_attention)
 
 opt.num_classes = len(class_names)
 
@@ -349,7 +349,7 @@ if hasattr(model, 'backbone'):    # Why using 'backbone' gives slightly better r
     new_params = [p for p in model.parameters() if
                   id(p) not in base_param_ids]
     param_groups = [
-        {'params': filter(lambda p: p.requires_grad, model.backbone.parameters()), 'lr_mult': 1.0},
+        {'params': filter(lambda p: p.requires_grad, model.backbone.parameters()), 'lr_mult': 0.1*opt.lr},
         {'params': filter(lambda p: p.requires_grad, new_params), 'lr_mult': 1.0}]
     # param_groups = [
     #     {'params': filter(lambda p: p.requires_grad, model.backbone.parameters()), 'lr': 0.1*opt.lr},
@@ -359,13 +359,13 @@ else:
 
 
 if opt.optimizer == 'sgd':
-    optimizer_ft = torch.optim.SGD(param_groups, lr=opt.lr,   # lr is reset again to opt.lr equally
+    optimizer_ft = torch.optim.SGD(param_groups, lr=opt.lr,
                                    momentum=0.9,
                                    weight_decay=5e-4,
                                    nesterov=True)
 elif opt.optimizer == 'adam':
     optimizer_ft = torch.optim.Adam(
-        param_groups, lr=opt.lr, # lr is reset again to opt.lr equally! Remove lr=opt.lr to use the previously set value
+        param_groups, lr=opt.lr,
         weight_decay=5e-4,
     )
 else:
@@ -415,5 +415,3 @@ else:
 
 # Train and save the best model
 model = train_model(model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=70)  # 60, 70, 600, 200
-
-

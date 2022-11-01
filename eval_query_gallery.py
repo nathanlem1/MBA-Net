@@ -15,8 +15,8 @@ from evaluation_metrics import compute_CMC_mAP
 # Adding Folder MBA to the system path. Note that a module is just a Python program that ends with .py extension and a
 # folder that contains a module becomes a package.
 sys.path.insert(0, './MBA')
-from MBA import MBA
-# from MBA.MBA import MBA
+from MBA import ResNet50_MBA
+# from MBA.MBA import ResNet50_MBA
 
 try:
     from apex.fp16_utils import *
@@ -93,7 +93,7 @@ if len(gpu_ids) > 0:
 #
 
 data_transforms = transforms.Compose([
-    transforms.Resize((324, 324), interpolation=3),
+    transforms.Resize((324, 324), transforms.InterpolationMode.BICUBIC),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
@@ -181,9 +181,9 @@ def get_id(img_path):
 # Load Collected data Trained model
 print('-------Test has started ------------------')
 
-model_structure = MBA(opt.num_classes, use_biDir_relation=opt.use_biDir_relation, attention_fn=opt.attention_fn,
-                      relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
-                      use_attention=opt.use_attention)
+model_structure = ResNet50_MBA(opt.num_classes, use_biDir_relation=opt.use_biDir_relation,
+                               attention_fn=opt.attention_fn, relative_pos=opt.relative_pos, part_h=opt.part_h,
+                               part_v=opt.part_v, use_attention=opt.use_attention)
 
 model = load_network(model_structure)
 
@@ -231,7 +231,7 @@ for i in range(len(galleries)):
 
     # Save to Matlab for check
     result_fl = {'gallery_f': gallery_feature.numpy(), 'gallery_label': gallery_label,
-              'query_f': query_feature.numpy(), 'query_label': query_label}
+                 'query_f': query_feature.numpy(), 'query_label': query_label}
     scipy.io.savemat('result.mat', result_fl)
 
     print(m_name)

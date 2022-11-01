@@ -2,7 +2,7 @@
 Forensic anthropology is best defined as the identification of the human, or what remains of human, for medico-legal
 purposes ;)
 
-This code is used for splitting HD or PolyUKnuckleV1 data set to train, val and test split.
+This code is used for splitting HD data set to train, val and test split.
 train_all is a combination of train and val i.e. it includes val in the training set - just for experiment.
 
 """

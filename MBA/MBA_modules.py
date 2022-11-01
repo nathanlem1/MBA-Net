@@ -4,6 +4,8 @@ Self-attention mechanism is used to draw global dependencies of input feature ma
 # of a single sequence (or input feature map) in order to compute a representation of the same sequence (or input
 # feature map).
 
+This code implements spatial and channel attention Modules: SAM & CAM
+
 """
 
 import torch
@@ -14,12 +16,7 @@ from einops import rearrange
 import pdb
 
 
-# ===================
-#     MBA Modules
-# ===================
-
-
-# ------ Method 1:- ABD like modules -----------------------------------------------------------------------------------
+# ------ Method 1:- ABD like modules (default) -------------------------------------------------------------------------
 
 def compute_reindexing_tensor(l, L, device):
     """
@@ -33,10 +30,10 @@ def compute_reindexing_tensor(l, L, device):
     return mask.float()
 
 
-# PAM module
-class PAM1_module(nn.Module):
+# SAM module
+class SAM1_module(nn.Module):
     def __init__(self, in_dim, rel_pos_length, relative_pos=True):
-        super(PAM1_module, self).__init__()
+        super(SAM1_module, self).__init__()
         self.in_channel = in_dim
         self.softmax = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(
@@ -209,11 +206,11 @@ class CAM1_module(nn.Module):
 
 # ------ Method 2:- RGA like modules -----------------------------------------------------------------------------------
 
-# PAM module
-class PAM2_Module(nn.Module):
+# SAM module
+class SAM2_Module(nn.Module):
     def __init__(self, in_channel, in_spatial, cha_ratio=8, spa_ratio=8, down_ratio=8, use_biDir_relation=True,
                  relative_pos=True):
-        super(PAM2_Module, self).__init__()
+        super(SAM2_Module, self).__init__()
 
         self.in_channel = in_channel
         self.in_spatial = in_spatial
@@ -446,11 +443,11 @@ if __name__ == '__main__':
     print('input:', input.shape)
 
     # ------- Method 1:- ABD like ----------------------------
-    # PAM1
+    # SAM1
     L = max(input.shape[2], input.shape[3])
-    pam1_att = PAM1_module(input.shape[1], L)
-    output = pam1_att(input)
-    print('pam1_att:', output.shape)
+    sam1_att = SAM1_module(input.shape[1], L)
+    output = sam1_att(input)
+    print('sam1_att:', output.shape)
 
     # CAM1
     cam1_att = CAM1_module(input.shape[2]*input.shape[3])
@@ -458,11 +455,11 @@ if __name__ == '__main__':
     print('cam1_att:', output.shape)
 
     # ------- Method 2:- RGA like ----------------------------
-    # PAM
-    pam2_att = PAM2_Module(input.shape[1], input.shape[2]*input.shape[3], cha_ratio=8, spa_ratio=8, down_ratio=8,
+    # SAM
+    sam2_att = SAM2_Module(input.shape[1], input.shape[2]*input.shape[3], cha_ratio=8, spa_ratio=8, down_ratio=8,
                            use_biDir_relation=True)
-    output = pam2_att(input)
-    print('pam2_att:', output.shape)
+    output = sam2_att(input)
+    print('sam2_att:', output.shape)
 
     # CAM
     cam2_att = CAM2_Module(input.shape[1], input.shape[2]*input.shape[3], cha_ratio=8, spa_ratio=8, down_ratio=8,
