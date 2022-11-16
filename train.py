@@ -75,14 +75,10 @@ parser.add_argument('--lr', default=0.02, type=float, help='learning rate for ne
                                                            'For pretrained parameters, it is 10 times smaller than this')
 parser.add_argument('--dropout', default=0.5, type=float, help='dropout rate')
 parser.add_argument('--optimizer', default='adam', type=str, help='Optimizer to use: sgd or adam')
-parser.add_argument('--use-biDir-relation', action='store_true', help='Use bi-directional relation in addition to the '
-                                                                      'original features.')
-parser.add_argument('--relative_pos', action='store_true', help='Use relative positional encodings.')
-parser.add_argument('--attention_fn', type=str, default='abd_fn',
-                    help='Attention type for MBA: abd_fn (default) or rga_fn.')
 parser.add_argument('--part_h', default=1, type=int, help='Number of horizontal partitions e.g. 1,2, .... Default is 1')
 parser.add_argument('--part_v', default=1, type=int, help='Number of vertical partitions e.g. 1,2, ... Default is 1')
 parser.add_argument('--use_attention', action='store_true', help='Use attention (both spatial and channel).')
+parser.add_argument('--relative_pos', action='store_true', help='Use relative positional encodings.')
 parser.add_argument('--is_repr', action='store_true',
                     help='For reproducibility during experimentation, for instance, for hyper-parameters tuning.')
 parser.add_argument('--fp16', action='store_true',
@@ -94,7 +90,6 @@ opt = parser.parse_args()
 opt.ls = True  # Set to True to use label smoothing with cross entropy.
 opt.color_jitter = True  # Set to True to use color jitter.
 opt.is_repr = True  # Set to True for reproducibility.
-opt.use_biDir_relation = True  # Set to True for using bi-directional relation in addition to the feature itself.
 opt.relative_pos = True  # Use relative positional encodings
 opt.use_attention = True  # Use attention (both spatial and channel)
 
@@ -334,8 +329,7 @@ def save_network(network, epoch_label):
 
 
 # Fine-tuning the ConvNet
-model = ResNet50_MBA(len(class_names), use_biDir_relation=opt.use_biDir_relation, attention_fn=opt.attention_fn,
-                     relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
+model = ResNet50_MBA(len(class_names), relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
                      use_attention=opt.use_attention)
 
 opt.num_classes = len(class_names)

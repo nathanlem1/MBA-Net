@@ -3,8 +3,8 @@ import torch.nn as nn
 from torch.nn import init
 from torchvision import models
 
-from MBA_modules import SAM1_module, CAM1_module, SAM2_Module, CAM2_Module
-# from MBA.MBA_modules import SAM1_module, CAM1_module, SAM2_Module, CAM2_Module
+from MBA_modules import SAM_module, CAM_module
+# from MBA.MBA_modules import SAM_module, CAM_module
 
 
 def weights_init_kaiming(m):
@@ -76,12 +76,10 @@ class Identity(torch.nn.Module):
 # Define the ResNet50-based MBA (Multi-Branch with Attention) model
 class ResNet50_MBA(nn.Module):
 
-    def __init__(self, class_num, drop_rate=0.5, stride=1, s_ratio=8, c_ratio=8, d_ratio=8, use_biDir_relation=True,
-                 attention_fn='abd_fn', relative_pos=True, part_h=3, part_v=1, use_attention=True):
+    def __init__(self, class_num, drop_rate=0.5, stride=1, relative_pos=True, part_h=3, part_v=1, use_attention=True):
         super(ResNet50_MBA, self).__init__()
         backbone = models.resnet50(pretrained=True)
         backbone.fc = Identity()
-        self.attention_fn = attention_fn
         self.part_h = part_h
         self.part_v = part_v
         self.use_attention = use_attention
@@ -116,45 +114,17 @@ class ResNet50_MBA(nn.Module):
         self.backbone.layer4c = backbone.layer4
         self.backbone.avgpoolc = backbone.avgpool
 
-        # ------ Method 1:- ABD like  (default) -------------------------
-        if self.attention_fn == 'abd_fn':
+        # SAM for layer 3 and layer 4 of ResNet50
+        # self.sam_att1 = SAM_module(256, 81, relative_pos=relative_pos)  # SAM, for 324x324 input
+        # self.sam_att2 = SAM_module(512, 41, relative_pos=relative_pos)
+        self.sam_att3 = SAM_module(1024, 21, relative_pos=relative_pos)
+        self.sam_att4 = SAM_module(2048, 21, relative_pos=relative_pos)
 
-            # SAM for layer 3 and layer 4 of ResNet50
-            # self.sam_att1 = SAM1_module(256, 81, relative_pos=relative_pos)  # SAM, for 324x324 input
-            # self.sam_att2 = SAM1_module(512, 41, relative_pos=relative_pos)
-            self.sam_att3 = SAM1_module(1024, 21, relative_pos=relative_pos)
-            self.sam_att4 = SAM1_module(2048, 21, relative_pos=relative_pos)
-
-            # CAM for layer 3 and layer 4 of ResNet50
-            # self.cam_att1 = CAM1_module(81*81)  # CAM
-            # self.cam_att2 = CAM1_module(41*41)
-            self.cam_att3 = CAM1_module(21*21)
-            self.cam_att4 = CAM1_module(21*21)
-
-        # ------- Method 2:- RGA like ------------------------------------
-        elif self.attention_fn == 'rga_fn':
-            # SAM modules
-            # self.sam_att1 = SAM2_Module(256,81*81, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-            #                              use_biDir_relation=use_biDir_relation, relative_pos=relative_pos)
-            # self.sam_att2 = SAM2_Module(512, 41*41, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-            #                              use_biDir_relation=use_biDir_relation, relative_pos=relative_pos)
-            self.sam_att3 = SAM2_Module(1024, 21*21, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-                                        use_biDir_relation=use_biDir_relation, relative_pos=relative_pos)
-            self.sam_att4 = SAM2_Module(2048, 21*21, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-                                        use_biDir_relation=use_biDir_relation, relative_pos=relative_pos)
-
-            # CAM modules
-            # self.cam_att1 = CAM2_Module(256, 81*81, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-            #                              use_biDir_relation=use_biDir_relation)
-            # self.cam_att2 = CAM2_Module(512, 41*41, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-            #                              use_biDir_relation=use_biDir_relation)
-            self.cam_att3 = CAM2_Module(1024, 21*21, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-                                        use_biDir_relation=use_biDir_relation)
-            self.cam_att4 = CAM2_Module(2048, 21*21, cha_ratio=c_ratio, spa_ratio=s_ratio, down_ratio=d_ratio,
-                                        use_biDir_relation=use_biDir_relation)
-        else:
-            print('Please the correct attention function: abd_fn or rga_fn!')
-            raise NameError
+        # CAM for layer 3 and layer 4 of ResNet50
+        # self.cam_att1 = CAM_module(81*81)  # CAM
+        # self.cam_att2 = CAM_module(41*41)
+        self.cam_att3 = CAM_module(21*21)
+        self.cam_att4 = CAM_module(21*21)
 
         # # Initialize parameters - using this gives less result!
         # self.sam_att1.apply(weights_init_kaiming)

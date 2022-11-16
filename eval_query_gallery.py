@@ -59,12 +59,10 @@ with open(config_path, 'r') as stream:
     config = yaml.load(stream)
 opt.fp16 = config['fp16']
 opt.data_type = config['data_type']
-opt.use_biDir_relation = config['use_biDir_relation']
-opt.attention_fn = config['attention_fn']
-opt.relative_pos = config['relative_pos']
 opt.part_h = config['part_h']
 opt.part_v = config['part_v']
 opt.use_attention = config['use_attention']
+opt.relative_pos = config['relative_pos']
 
 if 'num_classes' in config:
     opt.num_classes = config['num_classes']  # The number of classes the model is trained on!
@@ -181,9 +179,8 @@ def get_id(img_path):
 # Load Collected data Trained model
 print('-------Test has started ------------------')
 
-model_structure = ResNet50_MBA(opt.num_classes, use_biDir_relation=opt.use_biDir_relation,
-                               attention_fn=opt.attention_fn, relative_pos=opt.relative_pos, part_h=opt.part_h,
-                               part_v=opt.part_v, use_attention=opt.use_attention)
+model_structure = ResNet50_MBA(opt.num_classes, relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
+                               use_attention=opt.use_attention)
 
 model = load_network(model_structure)
 

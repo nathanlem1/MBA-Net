@@ -1,8 +1,7 @@
 """
-Self-attention mechanism is used to draw global dependencies of input feature maps using different relation functions
-# or operations. Self-attention, also known as intra-attention, is an attention mechanism relating different positions
-# of a single sequence (or input feature map) in order to compute a representation of the same sequence (or input
-# feature map).
+Self-attention mechanism is used to draw global dependencies of input feature maps using different relation functions or
+operations. Self-attention, also known as intra-attention, is an attention mechanism relating different positions of a
+single sequence (or input feature map) in order to compute a representation of the same sequence (or input feature map).
 
 This code implements spatial and channel attention Modules: SAM & CAM
 
@@ -15,8 +14,6 @@ from einops import rearrange
 
 import pdb
 
-
-# ------ Method 1:- ABD like modules (default) -------------------------------------------------------------------------
 
 def compute_reindexing_tensor(l, L, device):
     """
@@ -31,9 +28,9 @@ def compute_reindexing_tensor(l, L, device):
 
 
 # SAM module
-class SAM1_module(nn.Module):
+class SAM_module(nn.Module):
     def __init__(self, in_dim, rel_pos_length, relative_pos=True):
-        super(SAM1_module, self).__init__()
+        super(SAM_module, self).__init__()
         self.in_channel = in_dim
         self.softmax = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(
@@ -64,7 +61,8 @@ class SAM1_module(nn.Module):
             self.bnormr = nn.BatchNorm2d(in_dim)  # dim_key
             self.bnormc = nn.BatchNorm2d(in_dim)  # dim_key
             self.rel_rows = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Row relative positional embedding
-            self.rel_columns = nn.Parameter(torch.randn(num_rel_shifts, dim_key)) # Column relative positional embedding
+            self.rel_columns = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Column relative positional
+            # embedding
 
     def forward(self, x):
         """
@@ -98,7 +96,7 @@ class SAM1_module(nn.Module):
             Eh = Eh.view(m_batchsize, C, height, width)
             Eh = self.bnormr(Eh)  # Batch normalization is really important!
 
-            Iw = compute_reindexing_tensor(width, L, device) # For width-only (column-only)
+            Iw = compute_reindexing_tensor(width, L, device)  # For width-only (column-only)
             Iw = Iw.view(height*width, -1)
             Pw = torch.mm(Iw, self.rel_columns)
             Ew = torch.matmul(proj_value, torch.matmul(Pw, proj_queryT))
@@ -136,7 +134,7 @@ class SAM1_module(nn.Module):
 
 
 # CAM module
-class CAM1_module(nn.Module):
+class CAM_module(nn.Module):
     """
     inputs :
         x : input feature maps( B X C X H X W)
@@ -149,7 +147,7 @@ class CAM1_module(nn.Module):
 """
 
     def __init__(self, in_dim):
-        super(CAM1_module, self).__init__()
+        super(CAM_module, self).__init__()
 
         self.softmax = nn.Softmax(dim=-1)
         self.gamma = nn.Parameter(
@@ -204,267 +202,20 @@ class CAM1_module(nn.Module):
         return out
 
 
-# ------ Method 2:- RGA like modules -----------------------------------------------------------------------------------
-
-# SAM module
-class SAM2_Module(nn.Module):
-    def __init__(self, in_channel, in_spatial, cha_ratio=8, spa_ratio=8, down_ratio=8, use_biDir_relation=True,
-                 relative_pos=True):
-        super(SAM2_Module, self).__init__()
-
-        self.in_channel = in_channel
-        self.in_spatial = in_spatial
-
-        self.use_biDir_relation = use_biDir_relation
-        self.relative_pos = relative_pos
-
-        self.inter_channel = in_channel // cha_ratio  # cha_ratio - s1
-        self.inter_spatial = in_spatial // spa_ratio  # spa_ratio - s1
-
-        # Embedding functions for original features
-        self.gx_spatial = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_channel, out_channels=self.inter_channel,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_channel),
-            nn.ReLU()
-        )
-
-        # Embedding functions for relation (affinity or similarity) features
-        if self.use_biDir_relation:
-            num_in_channel_s = self.in_spatial * 2
-        else:
-            num_in_channel_s = self.in_spatial
-        self.gg_spatial = nn.Sequential(
-            nn.Conv2d(in_channels=num_in_channel_s, out_channels=self.inter_spatial,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_spatial),
-            nn.ReLU()
-        )
-
-        # Networks for learning attention weights
-        num_channel_s = 1 + self.inter_spatial
-        # num_channel_s = self.inter_spatial   # For using relations only i.e. without the original feature.
-        self.W_spatial = nn.Sequential(
-            nn.Conv2d(in_channels=num_channel_s, out_channels=num_channel_s // down_ratio,  # down_ratio - s2
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(num_channel_s // down_ratio),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=num_channel_s // down_ratio, out_channels=1,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(1)
-        )
-
-        # Embedding functions for modeling relations (affinity or similarity)
-        self.theta_spatial = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_channel, out_channels=self.inter_channel,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_channel),
-            nn.ReLU()
-        )
-        self.phi_spatial = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_channel, out_channels=self.inter_channel,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_channel),
-            nn.ReLU()
-        )
-
-        # Learn relative positional embeddings for incorporating relative positional encodings
-        if self.relative_pos:
-            import numpy as np
-            rel_pos_length = int(np.sqrt(in_spatial))
-            num_rel_shifts = 2 * rel_pos_length - 1
-            dim_key = in_channel // 8
-            self.bnorm_r = nn.BatchNorm2d(in_channel)  # dim_key
-            self.bnorm_c = nn.BatchNorm2d(in_channel)  # dim_key
-            self.rel_rows_r = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Row relative positional embedding
-            self.rel_columns_c = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Column relative positional
-            # embedding
-
-    def forward(self, x):
-        b, c, h, w = x.size()
-        device = x.device
-
-        # Spatial attention
-        theta_xs = self.theta_spatial(x)
-        phi_xs = self.phi_spatial(x)
-        theta_xs = theta_xs.view(b, self.inter_channel, -1)
-        theta_xs = theta_xs.permute(0, 2, 1)  # Take a transpose
-        phi_xs = phi_xs.view(b, self.inter_channel, -1)
-        Gs = torch.matmul(theta_xs, phi_xs)  # Rs - Spatial affinity matrix
-
-        if self.use_biDir_relation:
-            Gs_in = Gs.permute(0, 2, 1).view(b, h * w, h, w)  # Rs for r_ji
-            Gs_out = Gs.view(b, h * w, h, w)  # Rs for r_ij
-            Gs_joint = torch.cat((Gs_in, Gs_out), 1)  # Rs for ri = [rij, rji]
-            Gs_joint = self.gg_spatial(Gs_joint)  # Reduce dimension of global relation using gg_spatial (relation)
-            # embedding function.
-
-            g_xs = self.gx_spatial(x)  # Reduce dimension of x
-            g_xs = torch.mean(g_xs, dim=1, keepdim=True)  # Further reduce g_xs to 1 along the channel dimension.
-            # ys = Gs_joint   # Use relations r_i only without x_i; just for comparison only
-            ys = torch.cat((g_xs, Gs_joint), 1)  # y_i = [x_i, r_i]
-
-        else:  # Use simple dot product for pairwise relation
-            Gs = Gs.view(b, h * w, h, w)  # Reshape
-            g_xs = self.gx_spatial(x)  # Reduce dimension of x
-            g_xs = torch.mean(g_xs, dim=1, keepdim=True)  # Further reduce g_xs to 1 along the channel dimension.
-            Gs = self.gg_spatial(Gs)  # Reduce dimension of Gs
-            # ys = Gs  # Gs for using simple dot product i.e. r_ij
-            ys = torch.cat((g_xs, Gs), 1)  # ys = [xi, rij] i.e. include the original feature
-
-        W_ys = self.W_spatial(ys)  # Learn spatial attention
-
-        # out = F.sigmoid(W_ys.expand_as(x)) * x
-        out = torch.sigmoid(W_ys.expand_as(x)) * x
-
-        # Learn relative positional embeddings for incorporating relative positional encodings
-        if self.relative_pos:
-            L = max(h, w)
-            Ih = compute_reindexing_tensor(h, L, device)  # Row (== height)  Ir
-            q, v = map(lambda t: rearrange(t, 'n c (x y) -> n c x y', x=h, y=w), (theta_xs.permute(0, 2, 1),
-                                                                                  x.view(b, c, -1)))
-            Ph = einsum('xir,rd->xid', Ih, self.rel_rows_r)  # Pr
-            Sh = einsum('ndxy,xid->nixy', q, Ph)  # Sr
-            Eh = einsum('nixy,neiy->nexy', Sh, v)
-            Eh = self.bnorm_r(Eh)
-
-            Iw = compute_reindexing_tensor(w, L, device)  # Column (== width)
-            Pw = einsum('yir,rd->yid', Iw, self.rel_columns_c)
-            Sw = einsum('ndxy,yid->nixy', q, Pw)
-            Ew = einsum('nixy,neiy->nexy', Sw, v)  # Gives the best result
-            Ew = self.bnorm_c(Ew)  # Batch normalization is really important!
-            # Add them element-wise
-            rel_pos_out = Ew + Eh
-
-            out = torch.sigmoid(W_ys.expand_as(x) + rel_pos_out.contiguous()) * x
-
-        return out
-
-
-# CAM module
-class CAM2_Module(nn.Module):
-    def __init__(self, in_channel, in_spatial, cha_ratio=8, spa_ratio=8, down_ratio=8, use_biDir_relation=True):
-        super(CAM2_Module, self).__init__()
-
-        self.in_channel = in_channel
-        self.in_spatial = in_spatial
-
-        self.use_biDir_relation = use_biDir_relation
-
-        self.inter_channel = in_channel // cha_ratio  # cha_ratio - s1
-        self.inter_spatial = in_spatial // spa_ratio  # spa_ratio - s1
-
-        # Embedding functions for original features
-        self.gx_channel = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_spatial, out_channels=self.inter_spatial,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_spatial),
-            nn.ReLU()
-        )
-
-        # Embedding functions for relation (affinity or similarity) features
-        if self.use_biDir_relation:
-            num_in_channel_c = self.in_channel * 2
-        else:
-            num_in_channel_c = self.in_channel
-        self.gg_channel = nn.Sequential(
-            nn.Conv2d(in_channels=num_in_channel_c, out_channels=self.inter_channel,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_channel),
-            nn.ReLU()
-        )
-
-        # Networks for learning attention weights
-        num_channel_c = 1 + self.inter_channel
-        # num_channel_c = self.inter_channel   # For using relations only i.e. without the original feature.
-        self.W_channel = nn.Sequential(
-            nn.Conv2d(in_channels=num_channel_c, out_channels=num_channel_c // down_ratio,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(num_channel_c // down_ratio),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=num_channel_c // down_ratio, out_channels=1,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(1)
-        )
-
-        # Embedding functions for modeling relations (affinity or similarity)
-        self.theta_channel = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_spatial, out_channels=self.inter_spatial,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_spatial),
-            nn.ReLU()
-        )
-        self.phi_channel = nn.Sequential(
-            nn.Conv2d(in_channels=self.in_spatial, out_channels=self.inter_spatial,
-                      kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(self.inter_spatial),
-            nn.ReLU()
-        )
-
-    def forward(self, x):
-        b, c, h, w = x.size()
-
-        # Channel attention
-        xc = x.view(b, c, -1).permute(0, 2, 1).unsqueeze(-1)
-        theta_xc = self.theta_channel(xc).squeeze(-1).permute(0, 2, 1)  # Transpose
-        phi_xc = self.phi_channel(xc).squeeze(-1)
-        Gc = torch.matmul(theta_xc, phi_xc)  # Rc
-
-        if self.use_biDir_relation:
-            Gc_in = Gc.permute(0, 2, 1).unsqueeze(-1)  # r_ji
-            Gc_out = Gc.unsqueeze(-1)  # r_ij
-            Gc_joint = torch.cat((Gc_in, Gc_out), 1)
-            Gc_joint = self.gg_channel(Gc_joint)
-
-            g_xc = self.gx_channel(xc)
-            g_xc = torch.mean(g_xc, dim=1, keepdim=True)
-            # yc = Gc_joint   # Use relations r_i only without x_i; just for comparison only
-            yc = torch.cat((g_xc, Gc_joint), 1)
-
-        else:  # Use simple dot product for pairwise relation
-            Gc = Gc.unsqueeze(-1)
-            g_xc = self.gx_channel(xc)
-            g_xc = torch.mean(g_xc, dim=1, keepdim=True)
-            Gc = self.gg_channel(Gc)  # Reduce dimension of Gc.
-            # yc = Gc  # Gc for using simple dot product i.e. r_ij without the original feature.
-            yc = torch.cat((g_xc, Gc), 1)  # yc = [xi, rij] i.e. include the original feature
-
-        W_yc = self.W_channel(yc).transpose(1, 2)  # Learn channel attention
-
-        # out = F.sigmoid(W_yc) * x
-        out = torch.sigmoid(W_yc) * x
-
-        return out
-
-
 # Test
 if __name__ == '__main__':
     input = torch.FloatTensor(10, 256, 56, 56)
     print('input:', input.shape)
 
-    # ------- Method 1:- ABD like ----------------------------
-    # SAM1
-    L = max(input.shape[2], input.shape[3])
-    sam1_att = SAM1_module(input.shape[1], L)
-    output = sam1_att(input)
-    print('sam1_att:', output.shape)
-
-    # CAM1
-    cam1_att = CAM1_module(input.shape[2]*input.shape[3])
-    output = cam1_att(input)
-    print('cam1_att:', output.shape)
-
-    # ------- Method 2:- RGA like ----------------------------
     # SAM
-    sam2_att = SAM2_Module(input.shape[1], input.shape[2]*input.shape[3], cha_ratio=8, spa_ratio=8, down_ratio=8,
-                           use_biDir_relation=True)
-    output = sam2_att(input)
-    print('sam2_att:', output.shape)
+    L = max(input.shape[2], input.shape[3])
+    sam_att = SAM_module(input.shape[1], L)
+    output = sam_att(input)
+    print('sam_attention: ', output.shape)
 
     # CAM
-    cam2_att = CAM2_Module(input.shape[1], input.shape[2]*input.shape[3], cha_ratio=8, spa_ratio=8, down_ratio=8,
-                           use_biDir_relation=True)
-    output = cam2_att(input)
-    print('cam2_att:', output.shape)
+    cam_att = CAM_module(input.shape[2]*input.shape[3])
+    output = cam_att(input)
+    print('cam_attention: ', output.shape)
 
     print('ok')
