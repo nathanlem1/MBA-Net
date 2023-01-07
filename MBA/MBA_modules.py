@@ -27,8 +27,8 @@ def compute_reindexing_tensor(l, L, device):
     return mask.float()
 
 
-# SAM module
 class SAM_module(nn.Module):
+    """ SAM module """
     def __init__(self, in_dim, rel_pos_length, relative_pos=True):
         super(SAM_module, self).__init__()
         self.in_channel = in_dim
@@ -66,11 +66,11 @@ class SAM_module(nn.Module):
 
     def forward(self, x):
         """
-            inputs :
-                x : input feature maps( B X C X H X W)
-            returns :
-                out : attention value + input feature
-                attention: B X (HxW) X (HxW)
+        inputs :
+            x : input feature maps( B X C X H X W)
+        returns :
+            out : attention value + input feature
+            attention: B X (HxW) X (HxW)
         """
         m_batchsize, C, height, width = x.size()
         device = x.device
@@ -133,19 +133,8 @@ class SAM_module(nn.Module):
         return out
 
 
-# CAM module
 class CAM_module(nn.Module):
-    """
-    inputs :
-        x : input feature maps( B X C X H X W)
-    returns :
-        out : attention value + input feature
-        attention: B X C X C
-
-    Noted that we do not employ convolution layers to embed features before computing relationships of two channels,
-    since it can maintain relationship between different channel maps.
-"""
-
+    """ CAM module """
     def __init__(self, in_dim):
         super(CAM_module, self).__init__()
 
@@ -170,6 +159,16 @@ class CAM_module(nn.Module):
         # )
 
     def forward(self, x):
+        """
+        inputs :
+            x : input feature maps( B X C X H X W)
+        returns :
+            out : attention value + input feature
+            attention: B X C X C
+
+        Noted that we do not employ convolution layers to embed features before computing relationships of two channels,
+        since it can maintain relationship between different channel maps.
+        """
         m_batchsize, C, height, width = x.size()
 
         # Without learning any embedding function - this gives better results for channel attention branch

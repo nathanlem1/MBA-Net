@@ -12,7 +12,7 @@ import yaml
 
 from evaluation_metrics import compute_CMC_mAP
 
-# Adding Folder MBA to the system path. Note that a module is just a Python program that ends with .py extension and a
+# Adding 'MBA' folder to the system path. Note that a module is just a Python program that ends with .py extension and a
 # folder that contains a module becomes a package.
 sys.path.insert(0, './MBA')
 from MBA import ResNet50_MBA
@@ -85,11 +85,7 @@ if len(gpu_ids) > 0:
     torch.cuda.set_device(gpu_ids[0])
     cudnn.benchmark = True
 
-# Load Data
-#
-# We will use torchvision and torch.utils.data packages for loading the data.
-#
-
+# Load Data: We will use torchvision and torch.utils.data packages for loading the data, with appropriate transforms.
 data_transforms = transforms.Compose([
     transforms.Resize((324, 324), transforms.InterpolationMode.BICUBIC),
     transforms.ToTensor(),
@@ -116,7 +112,7 @@ def fliplr(img):
     return img_flip
 
 
-# Extract feature from  a trained model.# Extract feature from  a trained model.
+# Extract feature from a trained model.# Extract feature from  a trained model.
 def extract_feature(model, data_loaders):
     features = torch.FloatTensor()
     count = 0
@@ -184,11 +180,12 @@ model_structure = ResNet50_MBA(opt.num_classes, relative_pos=opt.relative_pos, p
 
 model = load_network(model_structure)
 
-# Change to test mode and transfer to GPU
+# Send model to GPU; it is recommended to use DistributedDataParallel, instead of DataParallel, to do multi-GPU
+# training, even if there is only a single node.
 model = model.eval()
 if use_gpu:
+    # model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
     model = model.cuda()
-    # model = torch.nn.DataParallel(model, device_ids=[0]).cuda()  # Doesn't work at the moment!
 
 
 # For N = 10 Monte Carlo runs

@@ -19,7 +19,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('agg')
 
-# Adding Folder MBA to the system path. Note that a module is just a Python program that ends with .py extension and a
+# Adding 'MBA' folder to the system path. Note that a module is just a Python program that ends with .py extension and a
 # folder that contains a module becomes a package.
 sys.path.insert(0, './MBA')
 from MBA import ResNet50_MBA
@@ -32,8 +32,9 @@ from random_erasing import RandomErasing
 version = torch.__version__
 
 
-# For reproducibility
 def set_seed(seed):
+    """ For reproducibility """
+
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     cudnn.deterministic = True
@@ -171,14 +172,8 @@ inputs, classes = next(iter(data_loaders['train']))
 print(time.time()-since)
 
 
-# Training the model
-# ---------------------------------------------------------------------------------------------------------------------
-# Now, let's write a general function to train a model. Here, we will illustrate:
-#
-# -  Scheduling the learning rate
-# -  Saving the best model
-#
-# ----------------------------------------------------------------------------------------------------------------------
+# Training the model:
+# We write a general function to train a model with scheduling the learning rate and saving the best model
 
 y_loss = dict()  # Loss history
 y_loss['train'] = []
@@ -297,7 +292,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=70):
     model.load_state_dict(best_model_wts)
     save_network(model, 'best')
     return model
-# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------------------------
 
 
 # Draw Curve
@@ -328,7 +323,7 @@ def save_network(network, epoch_label):
         network.cuda(gpu_ids[0])
 
 
-# Fine-tuning the ConvNet
+# Instantiate the model
 model = ResNet50_MBA(len(class_names), relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
                      use_attention=opt.use_attention)
 
@@ -388,7 +383,7 @@ with open('%s/opts.yaml' % dir_name, 'w') as fp:
 
 # Send model to GPU; it is recommended to use DistributedDataParallel, instead of DataParallel, to do multi-GPU
 # training, even if there is only a single node.
-# model = torch.nn.DataParallel(model, device_ids=[0]).cuda()  # Doesn't work during testing at the moment!
+# model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
 model = model.cuda()
 
 # Use fp16

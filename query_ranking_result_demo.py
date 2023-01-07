@@ -58,8 +58,8 @@ query_feature = query_feature.cuda()
 gallery_feature = gallery_feature.cuda()
 
 
-# Sort the images
 def sort_img(qf, gf):
+    """ Sort the images """
     query = qf.view(-1, 1)
 
     # Compute Cosine similarity score of a query feature with each of gallery image features.

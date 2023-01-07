@@ -31,8 +31,10 @@ def weights_init_classifier(m):
         init.constant_(m.bias.data, 0.0)
 
 
-# Define a new FC layer and classification layer - |--Linear--|--bn--|--relu--|--dropout--|--Linear--|
 class ClassBlock(nn.Module):
+    """
+    Define a new FC layer and classification layer - |--Linear--|--bn--|--relu--|--dropout--|--Linear--|
+    """
     def __init__(self, input_dim, class_num, drop_rate, relu=True, batch_norm=True, num_bottleneck=2048, linear=True):  # 512
         super(ClassBlock, self).__init__()
         add_block = []
@@ -64,8 +66,10 @@ class ClassBlock(nn.Module):
         return x
 
 
-# Define an Identity layer to replace the FC layer of the pretrained model
 class Identity(torch.nn.Module):
+    """
+    Define an Identity layer to replace the FC layer of the pretrained model.
+    """
     def __init__(self):
         super(Identity, self).__init__()
 
@@ -73,8 +77,10 @@ class Identity(torch.nn.Module):
         return x
 
 
-# Define the ResNet50-based MBA (Multi-Branch with Attention) model
 class ResNet50_MBA(nn.Module):
+    """
+    Define the ResNet50-based MBA (Multi-Branch with Attention) model.
+    """
 
     def __init__(self, class_num, drop_rate=0.5, stride=1, relative_pos=True, part_h=3, part_v=1, use_attention=True):
         super(ResNet50_MBA, self).__init__()

@@ -10,21 +10,23 @@ import torch.nn as nn
 
 
 def reduce_loss(loss, reduction='mean'):
-    """
-    :param loss: The output (loss here).
-    :param reduction: The reduction to apply to the output (loss here) such as 'mean', 'sum' or 'none'.
-    :return: reduced output (loss here).
+    """ Reduce loss
+    Args:
+        loss: The output (loss here).
+        reduction: The reduction to apply to the output (loss here) such as 'mean', 'sum' or 'none'.
+    return:
+        reduced output (loss here).
     """
     return loss.mean() if reduction == 'mean' else loss.sum() if reduction == 'sum' else loss
 
 
 class LabelSmoothingCrossEntropyLoss(nn.Module):
-    """"
-    :param epsilon: A small constant (smoothing value) to encourage the model to be less confident on the training set.
-    :param reduction: The reduction to apply to the output (loss here) such as 'mean', 'sum' or 'none'.
-    :param preds: Predictions
-    :param target: Labels
-
+    """ Label smoothing cross entropy loss
+    Args:
+        epsilon: A small constant (smoothing value) to encourage the model to be less confident on the training set.
+        reduction: The reduction to apply to the output (loss here) such as 'mean', 'sum' or 'none'.
+        preds: Predictions
+        target: Labels
     """
     def __init__(self, epsilon: float = 0.1, reduction='mean'):
         super(LabelSmoothingCrossEntropyLoss, self).__init__()

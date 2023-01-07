@@ -10,22 +10,23 @@ class LRScheduler(object):
     A scheduler returns a new learning rate based on the number of updates that have
     been performed.
 
-    Parameters
-    ----------
-    base_lr : float, optional
-        The initial learning rate.
-    warmup_epoch: int
-        number of warmup steps used before this scheduler starts decay
-    warmup_begin_lr: float
-        if using warmup, the learning rate from which it starts warming up
-    warmup_mode: string
-        warmup can be done in two modes.
-        'linear' mode gradually increases lr with each step in equal increments
-        'constant' mode keeps lr at warmup_begin_lr for warmup_steps
     """
 
     def __init__(self, base_lr=0.01, step=(30, 60), factor=0.1,
                  warmup_epoch=0, warmup_begin_lr=0, warmup_mode='linear'):
+        """
+        Args:
+            base_lr : float, optional
+                The initial learning rate.
+            warmup_epoch: int
+                number of warmup steps used before this scheduler starts decay
+            warmup_begin_lr: float
+                if using warmup, the learning rate from which it starts warming up
+            warmup_mode: string
+                warmup can be done in two modes.
+                'linear' mode gradually increases lr with each step in equal increments
+                'constant' mode keeps lr at warmup_begin_lr for warmup_steps
+        """
         self.base_lr = base_lr
         self.learning_rate = base_lr
         if isinstance(step, tuple) or isinstance(step, list):
