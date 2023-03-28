@@ -11,12 +11,7 @@ import scipy.io
 import yaml
 
 from evaluation_metrics import compute_CMC_mAP
-
-# Adding 'MBA' folder to the system path. Note that a module is just a Python program that ends with .py extension and a
-# folder that contains a module becomes a package.
-sys.path.insert(0, './MBA')
-from MBA import ResNet50_MBA
-# from MBA.MBA import ResNet50_MBA
+from model.MBA import ResNet50_MBA
 
 try:
     from apex.fp16_utils import *
@@ -39,7 +34,7 @@ parser.add_argument('--f_name', default='./model_11k_d_r', type=str,
                          './model_11k_d_r  ./model_11k_d_l  ./model_11k_p_r  ./model_11k_p_l'  # For 11k
                          'or ./model_HD'   # For HD
                          'Note: Adjust the data-type in opts.yaml when evaluating cross-domain performance.')
-parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
+parser.add_argument('--m_name', default='ResNet50_MBA', type=str,
                     help='Saved model name - ResNet50_MBA for ResNet50 with MBA model.')
 parser.add_argument('--which_epoch', default='best', type=str, help='0,1,2,3...or best')
 parser.add_argument('--batch_size', default=14, type=int, help='batch_size')  # 256, 40
@@ -56,7 +51,7 @@ use_gpu = torch.cuda.is_available()
 config_path = os.path.join(opt.f_name, opt.m_name, 'opts.yaml')
 
 with open(config_path, 'r') as stream:
-    config = yaml.load(stream)
+    config = yaml.load(stream, Loader=yaml.FullLoader)
 opt.fp16 = config['fp16']
 opt.data_type = config['data_type']
 opt.part_h = config['part_h']
@@ -210,7 +205,7 @@ for i in range(len(galleries)):
 
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms) for x in [g, q]}
     data_loaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,
-                                                   shuffle=False, num_workers=16) for x in [g, q]}
+                                                   shuffle=False, num_workers=8) for x in [g, q]}
 
     gallery_path = image_datasets[g].imgs
     query_path = image_datasets[q].imgs

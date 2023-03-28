@@ -19,14 +19,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('agg')
 
-# Adding 'MBA' folder to the system path. Note that a module is just a Python program that ends with .py extension and a
-# folder that contains a module becomes a package.
-sys.path.insert(0, './MBA')
-from MBA import ResNet50_MBA
-# from MBA.MBA import ResNet50_MBA
-
 from label_smoothing_cross_entropy_loss import LabelSmoothingCrossEntropyLoss
 from lr_scheduler import LRScheduler
+from model.MBA import ResNet50_MBA
 from random_erasing import RandomErasing
 
 version = torch.__version__
@@ -65,7 +60,7 @@ parser.add_argument('--f_name', default='./model_11k_d_r', type=str,
                     help='Output folder name - ./model_HD or '  # For HD dataset
                          './model_11k_d_r'  './model_11k_d_l'  './model_11k_p_r'  './model_11k_p_l')  # For 11k dataset
 parser.add_argument('--data_type', default='11k', type=str, help='Data type: 11k or HD')
-parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
+parser.add_argument('--m_name', default='ResNet50_MBA', type=str,
                     help='Output model name - ResNet50_MBA for ResNet50 with MBA model.')
 parser.add_argument('--train_all', action='store_true', help='use all training data')
 parser.add_argument('--batch_size', default=4, type=int, help='batch_size')  # 10, 20, 32, etc
@@ -159,7 +154,7 @@ image_datasets['train'] = datasets.ImageFolder(os.path.join(data_dir, 'train' + 
 image_datasets['val'] = datasets.ImageFolder(os.path.join(data_dir, 'val'), data_transforms['val'])
 
 data_loaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,
-                                               shuffle=True, num_workers=8, pin_memory=False)  # 8 workers work faster
+                                               shuffle=True, num_workers=8, pin_memory=False)  # 8 workers work faster.
                 for x in ['train', 'val']}
 
 dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}

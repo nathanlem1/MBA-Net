@@ -3,8 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 from torchvision import models
 
-from MBA_modules import SAM_module, CAM_module
-# from MBA.MBA_modules import SAM_module, CAM_module
+from model.MBA_modules import SAM_module, CAM_module
 
 
 def weights_init_kaiming(m):
@@ -84,7 +83,12 @@ class ResNet50_MBA(nn.Module):
 
     def __init__(self, class_num, drop_rate=0.5, stride=1, relative_pos=True, part_h=3, part_v=1, use_attention=True):
         super(ResNet50_MBA, self).__init__()
-        backbone = models.resnet50(pretrained=True)
+        # backbone = models.resnet50(pretrained=True)
+        resnet50 = models.resnet50   # from torchvision.models import resnet50, ResNet50_Weights  is also possible!
+        weights = models.ResNet50_Weights.DEFAULT  # https: // pytorch.org / vision / stable / models.html
+        backbone = resnet50(weights=weights)  # Initialize the model with the BEST available weights for transfer
+        # learning
+
         backbone.fc = Identity()
         self.part_h = part_h
         self.part_v = part_v
