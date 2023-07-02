@@ -1,4 +1,4 @@
-### Multi-Branch with Attention Network for Hand-Based Person Recognition
+# Multi-Branch with Attention Network for Hand-Based Person Recognition
 
 Code for the paper [Multi-Branch with Attention Network for Hand-Based Person Recognition](https://ieeexplore.ieee.org/document/9956555) which has been published on [ICPR 2022](https://www.icpr2022.com/).
 
