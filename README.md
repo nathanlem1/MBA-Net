@@ -69,24 +69,25 @@ Then you can run following code to prepare the HD dataset:
 
 
 ## Train
-To train on the 11k dorsal right dataset, run:  
+To train on the 11k dorsal right dataset, you need to run the following:  
 
 `python train.py --data_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --data_type 11k --m_name ResNet50_MBA`
 
 Please look into the `train.py` for more details. You need to provide the correct dataset i.e. right dorsal of 11k, left dorsal of 11k, right palmar of 11k, left palmar of 11k or HD dataset. 
-You may need to change the name of `Original Images` in `HD/Original Images/` to `Original_Images` so that it can look like `HD/Original_Images/`. This helps to use it on command line to train the model on `HD` dataset.
-Thus, to train on the HD dataset, run:
+You may need to change the name of `Original Images` in `HD/Original Images` to `Original_Images` so that it will look like `HD/Original_Images`. This helps to use it on command line to train the model on `HD` dataset.
+Thus, to train on the HD dataset, you need to run the following:
 
 `python train.py --data_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --data_type HD --m_name ResNet50_MBA`
 
 
 ## Evaluate
-To evaluate, for instance, on the 11k dorsal right dataset, run:
+To evaluate, for instance, on the 11k dorsal right dataset, you need to run the following:
 
 `python eval_query_gallery.py --test_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --m_name ResNet50_MBA`
 
 Please look into the `eval_query_gallery.py` for more details. In case you are using a command line, you can run on the HD dataset
-after changing `Original Images` in `HD/Original Images/` to `Original_Images` using:
+after changing the name of `Original Images` in `HD/Original Images` to `Original_Images` so that it will look like `HD/Original_Images`, 
+and then run the following:
 
 `python eval_query_gallery.py --test_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --m_name ResNet50_MBA`
 
