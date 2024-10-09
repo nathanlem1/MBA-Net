@@ -60,9 +60,9 @@ class SAM_module(nn.Module):
             dim_key = in_dim // 8
             self.bnormr = nn.BatchNorm2d(in_dim)  # dim_key
             self.bnormc = nn.BatchNorm2d(in_dim)  # dim_key
-            self.rel_rows = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Row relative positional embedding
+            self.rel_rows = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Row relative positional embedding (Rh)
             self.rel_columns = nn.Parameter(torch.randn(num_rel_shifts, dim_key))  # Column relative positional
-            # embedding
+            # embedding (Rw)
 
     def forward(self, x):
         """
@@ -115,7 +115,7 @@ class SAM_module(nn.Module):
             # Eh = einsum('nixy,neiy->nexy', Sh, v)
             # Eh = self.bnormr(Eh)  # Batch normalization is really important!
             #
-            # Iw = compute_reindexing_tensor(width, L, device)  # Column (== width)
+            # Iw = compute_reindexing_tensor(width, L, device)  # For width-only (column-only)
             # Pw = einsum('yir,rd->yid', Iw, self.rel_columns)
             # Sw = einsum('ndxy,yid->nixy', q, Pw)
             # Ew = einsum('nixy,neiy->nexy', Sw, v)  # Gives the best result
