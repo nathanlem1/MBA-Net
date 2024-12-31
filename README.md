@@ -37,9 +37,13 @@ respectively.
 
 ## Installation
 
-1. Git clone this repo: `git clone https://github.com/nathanlem1/MBA-Net.git`
-2. Install dependencies by `pip install -r requirements.txt` to have the same environment configuration as the one we used. Note that we trained all models on a single NVIDIA GeForce RTX 2080 Ti GPU.
+Git clone this repo and install dependencies to have the same environment configuration as the one we used. Note that we trained all models on a single NVIDIA GeForce RTX 2080 Ti GPU.
 
+```
+git clone https://github.com/nathanlem1/MBA-Net.git
+cd MBA-Net
+pip install -r requirements.txt
+```
 
 ## Data Preparation
 We use [11k](https://sites.google.com/view/11khands) and [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) datasets for our experiments.
@@ -53,7 +57,9 @@ We use [11k](https://sites.google.com/view/11khands) and [HD](http://www4.comp.p
 ```
 Then you can run following code to prepare the 11k dataset: 
 
-`python prepare_train_val_test_11k_r_l.py`
+```
+python prepare_train_val_test_11k_r_l.py
+```
 
 2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/HD/` from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
 
@@ -64,32 +70,41 @@ HD/
    ReadMe.txt
 ```
 Then you can run following code to prepare the HD dataset: 
-
-`python prepare_train_val_test_hd.py`
+```
+python prepare_train_val_test_hd.py
+```
 
 
 ## Train
 To train on the 11k dorsal right dataset, you need to run the following code on terminal:  
 
-`python train.py --data_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --data_type 11k --m_name ResNet50_MBA`
+```
+python train.py --data_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --data_type 11k --m_name ResNet50_MBA
+```
 
 Please look into the `train.py` for more details. You need to provide the correct dataset i.e. right dorsal of 11k, left dorsal of 11k, right palmar of 11k, left palmar of 11k or HD dataset. 
 You may need to change the name of `Original Images` in `HD/Original Images` to `Original_Images` so that it will look like `HD/Original_Images`. This helps to use it on command line to train the model on `HD` dataset.
 Thus, to train on the HD dataset, you need to run the following code on terminal:
 
-`python train.py --data_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --data_type HD --m_name ResNet50_MBA`
+```
+python train.py --data_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --data_type HD --m_name ResNet50_MBA
+```
 
 
 ## Evaluate
 To evaluate, for instance, on the 11k dorsal right dataset, you need to run the following code on terminal:
 
-`python eval_query_gallery.py --test_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --m_name ResNet50_MBA`
+```
+python eval_query_gallery.py --test_dir ./11k/train_val_test_split_dorsal_r --f_name ./model_11k_d_r --m_name ResNet50_MBA
+```
 
 Please look into the `eval_query_gallery.py` for more details. In case you are using a command line, you can run on the HD dataset
 after changing the name of `Original Images` in `HD/Original Images` to `Original_Images` so that it will look like `HD/Original_Images`, 
 and then run the following code on terminal:
 
-`python eval_query_gallery.py --test_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --m_name ResNet50_MBA`
+```
+python eval_query_gallery.py --test_dir ./HD/Original_Images/train_val_test_split --f_name ./model_HD --m_name ResNet50_MBA
+```
 
 In addition, you can use `query_ranking_result_demo.py` to produce qualitative results.
 
