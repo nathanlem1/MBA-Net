@@ -1,10 +1,7 @@
 import argparse
 import os
-import sys
 
-import numpy as np
 import torch
-import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torchvision import datasets, transforms
 import scipy.io

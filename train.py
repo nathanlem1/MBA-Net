@@ -1,7 +1,6 @@
 import argparse
 import copy
 import os
-import sys
 import time
 from shutil import copyfile
 
@@ -9,7 +8,6 @@ import numpy as np
 import random
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torch.optim import lr_scheduler
 from torchvision import datasets, transforms
 import torch.backends.cudnn as cudnn
