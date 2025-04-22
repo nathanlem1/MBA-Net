@@ -70,7 +70,6 @@ def compute_CMC_mAP(result):
         CMC = CMC + CMC_tmp
         ap += ap_tmp
 
-
     CMC = CMC.float()
     CMC = CMC/len(query_label)  # Average CMC
     mAP = ap/len(query_label)  # Mean Average Precision
