@@ -11,21 +11,21 @@ The proposed attention modules and the structure of MBA-Net are shown below.
 
 a) Channel Attention Module (CAM):
 
-![](./doc_images/CAM.png)
+![](./assets/CAM.png)
 
 b) Spatial Attention Module with Relative Positional Encodings (SAM-RPE):
 
-![](./doc_images/SAM.png)
+![](./assets/SAM.png)
 
 c) MBA-Net:
 
-![](./doc_images/MBA_Net.png)
+![](./assets/MBA_Net.png)
 
 
 
 The qualitative results of our proposed method are also shown below. 
 
-![](./doc_images/results_demo.png)
+![](./assets/results_demo.png)
 
 Some qualitative results of our method using query vs
 ranked results retrieved from gallery are shown in the Fig. above. From top to bottom row
