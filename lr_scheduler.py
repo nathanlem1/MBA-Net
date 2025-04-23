@@ -13,7 +13,7 @@ class LRScheduler(object):
     """
 
     def __init__(self, base_lr=0.01, step=(30, 60), factor=0.1,
-                 warmup_epoch=0, warmup_begin_lr=0, warmup_mode='linear'):
+                 warmup_epoch=0, warmup_begin_lr=0., warmup_mode='linear'):
         """
         Args:
             base_lr : float, optional
