@@ -60,7 +60,7 @@ def extract_feature(model, data_loaders, args):
             input_img = img.cuda()
 
             outputs = model(input_img)
-            output_ffs = outputs['features']  # Gives better result on 324 x 324 on 11k-Dr. # Todo: ?
+            output_ffs = outputs['features']  # Gives better result on 324 x 324 on 11k-Dr.
             if args.part_h * args.part_v > 1 and args.use_attention:
                 output_ffs0 = output_ffs[0].view(output_ffs[0].shape[0], -1)
                 output_ffs = torch.cat((output_ffs0, output_ffs[1], output_ffs[2], output_ffs[3]),
@@ -143,10 +143,6 @@ def main():
         args.num_classes = 251  # 410
 
     str_ids = args.gpu_ids.split(',')
-    m_name = args.m_name
-    f_name = args.f_name
-    test_dir = args.test_dir
-
     gpu_ids = []
     for str_id in str_ids:
         id = int(str_id)
@@ -166,7 +162,7 @@ def main():
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    data_dir = test_dir
+    data_dir = args.test_dir
 
     # Load Collected data Trained model
     print('-------Test has started ------------------')
@@ -223,8 +219,8 @@ def main():
                      'query_f': query_feature.numpy(), 'query_label': query_label}
         scipy.io.savemat('result.mat', result_fl)
 
-        print(m_name)
-        result = '%s/%s/result.txt' % (f_name, m_name)
+        print(args.m_name)
+        result = '%s/%s/result.txt' % (args.f_name, args.m_name)
         # os.system('python3 compute_accuracy.py | tee -a %s' % result_file)
         # os.system('python3 compute_CMC_mAP.py | tee -a %s' % result)
 
@@ -246,7 +242,7 @@ def main():
     res.write('Rank@1:%.4f Rank@5:%.4f Rank@10:%.4f mAP:%.4f' % (CMC[0], CMC[4], CMC[9], mAP))
 
     # # Save for the later plot
-    # res_cmc = '%s/%s/CMC_gpa.npy' % (f_name, m_name)  # CMC_gpa.npy, CMC_res50.npy, CMC_vgg.npy
+    # res_cmc = '%s/%s/CMC_gpa.npy' % (args.f_name, args.m_name)  # CMC_gpa.npy, CMC_res50.npy, CMC_vgg.npy
     # np.save(res_cmc, CMC)
 
     print('-----Test is done!------------------')

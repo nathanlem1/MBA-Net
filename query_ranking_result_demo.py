@@ -26,7 +26,6 @@ def sort_img(qf, gf):
     return index
 
 
-# Show result
 def imshow(path, title=None):
     """Imshow for Tensor."""
     im = plt.imread(path)
@@ -36,7 +35,6 @@ def imshow(path, title=None):
     # plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-# Evaluate
 def main():
     parser = argparse.ArgumentParser(description='Demo of retrieving ranked results given an index of a query image.')
     parser.add_argument('--query_index', default=115, type=int,
