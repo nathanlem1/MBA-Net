@@ -351,8 +351,9 @@ def main():
 
     # Send model to GPU; it is recommended to use DistributedDataParallel, instead of DataParallel, to do multi-GPU
     # training, even if there is only a single node.
-    # model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
-    model = model.cuda()
+    if torch.cuda.is_available():
+        # model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
+        model = model.cuda()
 
     # Use fp16
     if args.fp16:
