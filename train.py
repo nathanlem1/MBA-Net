@@ -24,6 +24,15 @@ from random_erasing import RandomErasing
 version = torch.__version__
 
 
+# Use fp16 for faster training with low precision
+try:
+    from apex.fp16_utils import *
+    from apex import amp, optimizers
+except ImportError:  # will be 3.x series
+    print('This is not an error. If you want to use low precision, i.e., fp16, please install the apex with cuda '
+          'support (https://github.com/NVIDIA/apex)')
+
+
 def set_seed(seed):
     """
     Set the random seed for reproducibility across Python, NumPy, and PyTorch.
@@ -44,15 +53,6 @@ def set_seed(seed):
     torch.backends.cudnn.benchmark = False
     # Set seed to for os.environ
     os.environ['PYTHONHASHSEED'] = str(seed)
-
-
-# Use fp16 for faster training with low precision
-try:
-    from apex.fp16_utils import *
-    from apex import amp, optimizers
-except ImportError:  # will be 3.x series
-    print('This is not an error. If you want to use low precision, i.e., fp16, please install the apex with cuda '
-          'support (https://github.com/NVIDIA/apex)')
 
 
 # Train model
@@ -202,6 +202,8 @@ def main():
                         help='Output model name - ResNet50_MBA for ResNet50 with MBA model.')
     parser.add_argument('--train_all', action='store_true', help='use all training data')
     parser.add_argument('--batch_size', default=4, type=int, help='batch_size')  # 10, 20, 32, etc
+    parser.add_argument('--num_workers', default=0, type=int,
+                        help='Number of workers to use: 0, 8, etc. Setting to 8 workers may run faster.')
     parser.add_argument('--color_jitter', action='store_true', default=True, help='use color jitter in training')
     parser.add_argument('--erasing_p', default=0, type=float, help='Random Erasing probability, in [0,1]')
     parser.add_argument('--ls', action='store_true', default=True, help='Use label smoothing with cross entropy.')
@@ -209,8 +211,6 @@ def main():
                         help='learning rate for new parameters, try 0.015, 0.02, 0.05, For pretrained parameters, it '
                              'is 10 times smaller than this')
     parser.add_argument('--dropout', default=0.5, type=float, help='dropout rate')
-    parser.add_argument('--num_workers', default=0, type=int,
-                        help='Number of workers to use: 0, 8, etc. Setting to 8 workers may run faster.')
     parser.add_argument('--optimizer', default='adam', type=str, help='Optimizer to use: sgd or adam')
     parser.add_argument('--part_h', default=1, type=int,
                         help='Number of horizontal partitions e.g. 1,2, .... Default is 1')
