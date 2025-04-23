@@ -25,14 +25,24 @@ version = torch.__version__
 
 
 def set_seed(seed):
-    """ For reproducibility """
+    """
+    Set the random seed for reproducibility across Python, NumPy, and PyTorch.
 
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    cudnn.deterministic = True
-    cudnn.benchmark = False
-    np.random.seed(seed)            # For Numpy reproducibility; this is only used in case any library depends on numpy!
+    Parameters:
+        seed (int): The seed value to use.
+    """
+    # Set the seed for Python's built-in random module
     random.seed(seed)
+    # Set the seed for NumPy
+    np.random.seed(seed)
+    # Set the seed for PyTorch
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    # Ensure deterministic behavior in cuDNN (may impact performance)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    # Set seed to for os.environ
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 
