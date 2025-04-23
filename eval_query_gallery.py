@@ -14,12 +14,12 @@ try:
     from apex.fp16_utils import *
 except ImportError:  # will be 3.x series
     print('This is not an error. If you want to use low precision, i.e., fp16, please install the apex with cuda '
-          'support (https://github.com/NVIDIA/apex) and update pytorch to 1.0')
+          'support (https://github.com/NVIDIA/apex)')
 
 
 # Load model
-def load_network(network, opt):
-    save_path = os.path.join(opt.f_name, opt.m_name, 'net_%s.pth' % opt.which_epoch)  # Make sure which model to use!
+def load_network(network, args):
+    save_path = os.path.join(args.f_name, args.m_name, 'net_%s.pth' % args.which_epoch)  # Make sure which model to use!
     network.load_state_dict(torch.load(save_path))
     return network
 
@@ -35,7 +35,7 @@ def fliplr(img):
 
 
 # Extract feature from a trained model.# Extract feature from  a trained model.
-def extract_feature(model, data_loaders, opt):
+def extract_feature(model, data_loaders, args):
     features = torch.FloatTensor()
     count = 0
     for data in data_loaders:
@@ -44,11 +44,11 @@ def extract_feature(model, data_loaders, opt):
         count += n
         print(count)
 
-        if opt.part_h * opt.part_v > 1 and opt.use_attention:  # All Parts + Global + Attention features are used.
-            features_dim = 2048 * (3 + opt.part_h * opt.part_v)
-        elif opt.part_h * opt.part_v > 1 and not opt.use_attention:  # Attention features are not used!
-            features_dim = 2048 * (1 + opt.part_h * opt.part_v)
-        elif opt.part_h * opt.part_v <= 1 and opt.use_attention:  # Part (local) features are not used!
+        if args.part_h * args.part_v > 1 and args.use_attention:  # All Parts + Global + Attention features are used.
+            features_dim = 2048 * (3 + args.part_h * args.part_v)
+        elif args.part_h * args.part_v > 1 and not args.use_attention:  # Attention features are not used!
+            features_dim = 2048 * (1 + args.part_h * args.part_v)
+        elif args.part_h * args.part_v <= 1 and args.use_attention:  # Part (local) features are not used!
             features_dim = 2048 * 3
         else:  # if opt.part_h * opt.part_v <= 1 and not opt.use_attention
             features_dim = 2048  # Use global features only
@@ -61,15 +61,15 @@ def extract_feature(model, data_loaders, opt):
 
             outputs = model(input_img)
             output_ffs = outputs['features']  # Gives better result on 324 x 324 on 11k-Dr. # Todo: ?
-            if opt.part_h * opt.part_v > 1 and opt.use_attention:
+            if args.part_h * args.part_v > 1 and args.use_attention:
                 output_ffs0 = output_ffs[0].view(output_ffs[0].shape[0], -1)
                 output_ffs = torch.cat((output_ffs0, output_ffs[1], output_ffs[2], output_ffs[3]),
                                        1)  # For using all
                 # components
-            elif opt.part_h * opt.part_v > 1 and not opt.use_attention:
+            elif args.part_h * args.part_v > 1 and not args.use_attention:
                 output_ffs0 = output_ffs[0].view(output_ffs[0].shape[0], -1)
                 output_ffs = torch.cat((output_ffs0, output_ffs[1]), 1)  # Attention features are not used.
-            elif opt.part_h * opt.part_v <= 1 and opt.use_attention:  # Part (local) features are not used!
+            elif args.part_h * args.part_v <= 1 and args.use_attention:  # Part (local) features are not used!
                 output_ffs = torch.cat((output_ffs[1], output_ffs[2], output_ffs[3]), 1)
             else:
                 output_ffs = output_ffs[1]  # Use global features only
@@ -115,35 +115,37 @@ def main():
                         help='Saved model name - ResNet50_MBA for ResNet50 with MBA model.')
     parser.add_argument('--which_epoch', default='best', type=str, help='0,1,2,3...or best')
     parser.add_argument('--batch_size', default=14, type=int, help='batch_size')  # 256, 40
+    parser.add_argument('--num_workers', default=0, type=int,
+                        help='Number of workers to use: 0, 8, etc. Setting to 8 workers may run faster.')
     parser.add_argument('--fp16', action='store_true', help='use fp16.')
     parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
 
     # Args
-    opt = parser.parse_args()
+    args = parser.parse_args()
 
     use_gpu = torch.cuda.is_available()
 
     # Load the training config
-    config_path = os.path.join(opt.f_name, opt.m_name, 'opts.yaml')
+    config_path = os.path.join(args.f_name, args.m_name, 'opts.yaml')
 
     with open(config_path, 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
-    opt.fp16 = config['fp16']
-    opt.data_type = config['data_type']
-    opt.part_h = config['part_h']
-    opt.part_v = config['part_v']
-    opt.use_attention = config['use_attention']
-    opt.relative_pos = config['relative_pos']
+    args.fp16 = config['fp16']
+    args.data_type = config['data_type']
+    args.part_h = config['part_h']
+    args.part_v = config['part_v']
+    args.use_attention = config['use_attention']
+    args.relative_pos = config['relative_pos']
 
     if 'num_classes' in config:
-        opt.num_classes = config['num_classes']  # The number of classes the model is trained on!
+        args.num_classes = config['num_classes']  # The number of classes the model is trained on!
     else:
-        opt.num_classes = 251  # 410
+        args.num_classes = 251  # 410
 
-    str_ids = opt.gpu_ids.split(',')
-    m_name = opt.m_name
-    f_name = opt.f_name
-    test_dir = opt.test_dir
+    str_ids = args.gpu_ids.split(',')
+    m_name = args.m_name
+    f_name = args.f_name
+    test_dir = args.test_dir
 
     gpu_ids = []
     for str_id in str_ids:
@@ -156,7 +158,8 @@ def main():
         torch.cuda.set_device(gpu_ids[0])
         cudnn.benchmark = True
 
-    # Load Data: We will use torchvision and torch.utils.data packages for loading the data, with appropriate transforms.
+    # Load Data: We will use torchvision and torch.utils.data packages for loading the data, with appropriate
+    # transforms.
     data_transforms = transforms.Compose([
         transforms.Resize((324, 324), transforms.InterpolationMode.BICUBIC),
         transforms.ToTensor(),
@@ -168,10 +171,10 @@ def main():
     # Load Collected data Trained model
     print('-------Test has started ------------------')
 
-    model_structure = ResNet50_MBA(opt.num_classes, relative_pos=opt.relative_pos, part_h=opt.part_h, part_v=opt.part_v,
-                                   use_attention=opt.use_attention)
+    model_structure = ResNet50_MBA(args.num_classes, relative_pos=args.relative_pos, part_h=args.part_h,
+                                   part_v=args.part_v, use_attention=args.use_attention)
 
-    model = load_network(model_structure, opt)
+    model = load_network(model_structure, args)
 
     # Send model to GPU; it is recommended to use DistributedDataParallel, instead of DataParallel, to do multi-GPU
     # training, even if there is only a single node.
@@ -182,10 +185,10 @@ def main():
 
     # For N = 10 Monte Carlo runs
     # You can change the data_type in opts.yaml if you want to perform cross-domain performance evaluation!
-    if opt.data_type == '11k':
+    if args.data_type == '11k':
         galleries = ['gallery0_all', 'gallery1_all', 'gallery2_all', 'gallery3_all', 'gallery4_all', 'gallery5_all',
                      'gallery6_all', 'gallery7_all', 'gallery8_all', 'gallery9_all']  # For 11k
-    elif opt.data_type == 'HD':
+    elif args.data_type == 'HD':
         galleries = ['gallery0', 'gallery1', 'gallery2', 'gallery3', 'gallery4', 'gallery5', 'gallery6', 'gallery7',
                      'gallery8', 'gallery9']   # For HD
     else:
@@ -201,8 +204,8 @@ def main():
         q = queries[i]
 
         image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms) for x in [g, q]}
-        data_loaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,
-                                                       shuffle=False, num_workers=8) for x in [g, q]}
+        data_loaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=args.batch_size,
+                                                       shuffle=False, num_workers=args.num_workers) for x in [g, q]}
 
         gallery_path = image_datasets[g].imgs
         query_path = image_datasets[q].imgs
@@ -212,8 +215,8 @@ def main():
 
         # Extract feature
         with torch.no_grad():
-            gallery_feature = extract_feature(model, data_loaders[g], opt)
-            query_feature = extract_feature(model, data_loaders[q], opt)
+            gallery_feature = extract_feature(model, data_loaders[g], args)
+            query_feature = extract_feature(model, data_loaders[q], args)
 
         # Save to Matlab for check
         result_fl = {'gallery_f': gallery_feature.numpy(), 'gallery_label': gallery_label,

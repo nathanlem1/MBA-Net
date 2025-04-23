@@ -57,8 +57,10 @@ def main():
     query = 'query0'
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x)) for x in [gallery, query]}
 
-    # Load saved files - choose this correctly!
-    result = scipy.io.loadmat('result_mba_dr.mat')   # For 11k dorsal right
+    # Load saved files - choose this correctly! The filename, e.g. result_mba_dr.mat, is obtained by changing from
+    # result.mat after running on 11k dorsal right.
+    result = scipy.io.loadmat('result.mat')
+    # result = scipy.io.loadmat('result_mba_dr.mat')   # For 11k dorsal right
     # result = scipy.io.loadmat('result_mba_dl.mat')  # For 11k dorsal left
     # result = scipy.io.loadmat('result_mba_pr.mat')  # For 11k palmar right
     # result = scipy.io.loadmat('result_mba_pl.mat')  # For 11k palmar left
@@ -81,6 +83,7 @@ def main():
     query_label = query_label[i]
     print(query_path)
     print('Top %s images are as follow:' % (top_k))
+
     try:  # Visualize Ranking Result
         # Graphical User Interface is needed
         fig = plt.figure(figsize=(16, 4))
@@ -102,13 +105,13 @@ def main():
                 rect = patches.Rectangle((0, 0), img.shape[1], img.shape[0], linewidth=2, edgecolor='red', fill=False)
             ax.add_patch(rect)
             print(img_path)
+        fig.savefig("show.png")
+
     except RuntimeError:
         for i in range(top_k):
             img_path = image_datasets.imgs[index[i]]
             print(img_path[0])
         print('If you want to see the visualization of the ranking result, graphical user interface is needed.')
-
-    fig.savefig("show.png")
 
 
 # Execute from the interpreter
