@@ -142,7 +142,7 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, n
 
             # Save intermediate models, and training curve
             if phase == 'val':
-                if epoch+1 % 10 == 0:
+                if (epoch+1) % 10 == 0:
                     save_network(model, epoch+1, args)
                 draw_curve(epoch, args)
 
