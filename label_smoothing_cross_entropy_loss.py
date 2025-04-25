@@ -44,12 +44,12 @@ class LabelSmoothingCrossEntropyLoss(nn.Module):
         return ls_ce
 
 
-# # Usage
-# criterion = LabelSmoothingCrossEntropyLoss()
-# input = torch.randn(3, 5, requires_grad=True)   # Predictions
-# target = torch.empty(3, dtype=torch.long).random_(5)  # Label
-# loss = criterion(input.cuda(), target.cuda())
-# print(loss)
-# # loss.backward()
-# # optimizer.step()
-
+# Usage
+if __name__ == "__main__":
+    loss_fun = LabelSmoothingCrossEntropyLoss()
+    input = torch.randn(3, 5, requires_grad=True)   # Predictions
+    target = torch.empty(3, dtype=torch.long).random_(5)  # Label
+    loss = loss_fun(input.cuda(), target.cuda())
+    print(loss)
+    # loss.backward()
+    # optimizer.step()

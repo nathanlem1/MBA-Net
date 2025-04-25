@@ -68,7 +68,6 @@ class LRScheduler(object):
 
 # Test
 if __name__ == '__main__':
-
     lr_scheduler = LRScheduler(base_lr=0.0008, step=[40, 60],
                                factor=0.5, warmup_epoch=10,
                                warmup_begin_lr=0.000008)
