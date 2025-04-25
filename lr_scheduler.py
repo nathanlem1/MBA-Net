@@ -18,6 +18,10 @@ class LRScheduler(object):
         Args:
             base_lr : float, optional
                 The initial learning rate.
+            step: tuple or list
+                Steps or epochs at which learning rate can be decayed
+            factor: float
+                Learning decay rate at each of given step epochs, for instance, in step = (30, 60)
             warmup_epoch: int
                 number of warmup steps used before this scheduler starts decay
             warmup_begin_lr: float
@@ -65,16 +69,15 @@ class LRScheduler(object):
 # Test
 if __name__ == '__main__':
 
-    lr_scheduler = LRScheduler(base_lr=0.0008, step=[40, 60],  # Standard (ours)
+    lr_scheduler = LRScheduler(base_lr=0.0008, step=[40, 60],
                                factor=0.5, warmup_epoch=10,
                                warmup_begin_lr=0.000008)
 
-    num_epoch = 60  # 10, 20, 40, 60
+    num_epochs = 70
+    for epoch in range(num_epochs):
+        lr = lr_scheduler.update(epoch)
+        print(epoch, lr)
 
-    lr = lr_scheduler.update(num_epoch)
-
-    print(lr)
-
-    print('ok')
+    print('Done!')
 
 

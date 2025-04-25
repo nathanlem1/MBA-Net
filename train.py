@@ -207,9 +207,8 @@ def main():
     parser.add_argument('--color_jitter', action='store_true', default=True, help='use color jitter in training')
     parser.add_argument('--erasing_p', default=0, type=float, help='Random Erasing probability, in [0,1]')
     parser.add_argument('--ls', action='store_true', default=True, help='Use label smoothing with cross entropy.')
-    parser.add_argument('--lr', default=0.02, type=float,
-                        help='learning rate for new parameters, try 0.015, 0.02, 0.05, For pretrained parameters, it '
-                             'is 10 times smaller than this')
+    parser.add_argument('--lr', default=0.0008, type=float,
+                        help='Learning rate for new parameters, For pretrained parameters, it is 10 times smaller.')
     parser.add_argument('--dropout', default=0.5, type=float, help='dropout rate')
     parser.add_argument('--optimizer', default='adam', type=str, help='Optimizer to use: sgd or adam')
     parser.add_argument('--part_h', default=1, type=int,
@@ -333,9 +332,9 @@ def main():
         raise ValueError('Set the optimizer to either sgd or adam')
 
     # Learning rate scheduler
-    lr_scheduler = LRScheduler(base_lr=0.0008, step=[40, 60],
+    lr_scheduler = LRScheduler(base_lr=args.lr, step=[40, 60],
                                factor=0.5, warmup_epoch=10,
-                               warmup_begin_lr=0.000008)
+                               warmup_begin_lr=0.000008)  # Make sure warmup_begin_lr is smaller than base_lr.
 
     # Create a folder to save the trained model in
     dir_name = os.path.join(args.f_name, args.m_name)
