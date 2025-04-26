@@ -50,7 +50,10 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
     # Ensure deterministic behavior in cuDNN (may impact performance)
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = False  # If True, it causes cuDNN to benchmark multiple convolution algorithms and
+    # select the fastest. For PyTorch reproducibility, you need to set to False at cost of slightly lower run-time
+    # performance but easy for experimentation.
+
     # Set seed to for os.environ
     os.environ['PYTHONHASHSEED'] = str(seed)
 
@@ -203,7 +206,7 @@ def main():
     parser.add_argument('--train_all', action='store_true', help='use all training data')
     parser.add_argument('--batch_size', default=4, type=int, help='batch_size')  # 10, 20, 32, etc
     parser.add_argument('--num_workers', default=0, type=int,
-                        help='Number of workers to use: 0, 8, etc. Setting to 8 workers may run faster.')
+                        help='Number of workers to use: 0, 4, 8, etc. Setting to 8 workers may run faster.')
     parser.add_argument('--color_jitter', action='store_true', default=True, help='use color jitter in training')
     parser.add_argument('--erasing_p', default=0, type=float, help='Random Erasing probability, in [0,1]')
     parser.add_argument('--ls', action='store_true', default=True, help='Use label smoothing with cross entropy.')

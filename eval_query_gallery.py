@@ -116,7 +116,7 @@ def main():
     parser.add_argument('--which_epoch', default='best', type=str, help='0,1,2,3...or best')
     parser.add_argument('--batch_size', default=14, type=int, help='batch_size')  # 256, 40
     parser.add_argument('--num_workers', default=0, type=int,
-                        help='Number of workers to use: 0, 8, etc. Setting to 8 workers may run faster.')
+                        help='Number of workers to use: 0, 4, 8, etc. Setting to 8 workers may run faster.')
     parser.add_argument('--fp16', action='store_true', help='use fp16.')
     parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
 
