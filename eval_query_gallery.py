@@ -136,11 +136,7 @@ def main():
     args.part_v = config['part_v']
     args.use_attention = config['use_attention']
     args.relative_pos = config['relative_pos']
-
-    if 'num_classes' in config:
-        args.num_classes = config['num_classes']  # The number of classes the model is trained on!
-    else:
-        args.num_classes = 251  # 410
+    args.num_classes = config['num_classes']  # The number of classes the model is trained on!
 
     str_ids = args.gpu_ids.split(',')
     gpu_ids = []
