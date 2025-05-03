@@ -48,7 +48,7 @@ pip install -r requirements.txt
 ## Data Preparation
 We use [11k](https://sites.google.com/view/11khands) and [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) datasets for our experiments.
 
-1. To use the [11k](https://sites.google.com/view/11khands) dataset, you neet to create `11k` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/11k/` from https://sites.google.com/view/11khands and extract it. You need to download both hand images and metadata (.csv file). The data structure will look like:
+1. To use the [11k](https://sites.google.com/view/11khands) dataset, you neet to create `11k` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/11k/` from [11k](https://sites.google.com/view/11khands) and extract it. You need to download both hand images and metadata (.csv file). The data structure will look like:
 
 ```
 11k/
@@ -61,7 +61,7 @@ Then you can run following code to prepare the 11k dataset:
 python prepare_train_val_test_11k_r_l.py
 ```
 
-2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/HD/` from http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm and extract it. You need to download the original images. The data structure will look like:
+2. To use the [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) dataset, you neet to create `HD` folder under the `MBA-Net` folder. Download dataset to `/MBA-Net/HD/` from [HD](http://www4.comp.polyu.edu.hk/~csajaykr/knuckleV2.htm) and extract it. You need to download the original images. The data structure will look like:
 
 ```
 HD/
