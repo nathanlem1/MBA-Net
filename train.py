@@ -8,6 +8,7 @@ import numpy as np
 import random
 import torch
 import torch.nn as nn
+from torch.optim import lr_scheduler as lrscheduler
 from torchvision import datasets, transforms
 import torch.backends.cudnn as cudnn
 import yaml
@@ -70,9 +71,10 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, n
         print('-' * 10)
 
         # ---------------------------------
-        lr = lr_scheduler.update(epoch)  # Warmup strategy is included.
-        optimizer.param_groups[0]['lr'] = 0.1 * lr  # For pretrained layers
-        optimizer.param_groups[1]['lr'] = lr  # For new layers
+        if args.warmup:
+            lr = lr_scheduler.update(epoch)  # Warmup strategy is included.
+            optimizer.param_groups[0]['lr'] = 0.1 * lr  # For pretrained layers
+            optimizer.param_groups[1]['lr'] = lr  # For new layers
         # --------------------------------
 
         # Each epoch has a training and validation phase
@@ -134,6 +136,11 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, n
                 else:  # for the old version like 0.3.0 and 0.3.1
                     running_loss += loss.data[0] * now_batch_size
                 running_corrects += float(torch.sum(preds == labels.data))
+
+            # ---------------------------
+            if phase == 'train' and not args.warmup:
+                lr_scheduler.step()  # Use this in case warm-up learning strategy is not used!
+            # --------------------------
 
             epoch_loss = running_loss / len(data_loaders[phase].dataset.samples)
             epoch_acc = running_corrects / len(data_loaders[phase].dataset.samples)
@@ -212,6 +219,7 @@ def main():
     parser.add_argument('--ls', action='store_true', default=True, help='Use label smoothing with cross entropy.')
     parser.add_argument('--lr', default=0.0008, type=float,
                         help='Learning rate for new parameters, For pretrained parameters, it is 10 times smaller.')
+    parser.add_argument('--warmup', default=True, action='store_true', help='Use warmup learning strategy.')
     parser.add_argument('--dropout', default=0.5, type=float, help='dropout rate')
     parser.add_argument('--optimizer', default='adam', type=str, help='Optimizer to use: sgd or adam')
     parser.add_argument('--part_h', default=1, type=int,
@@ -335,9 +343,14 @@ def main():
         raise ValueError('Set the optimizer to either sgd or adam')
 
     # Learning rate scheduler
-    lr_scheduler = LRScheduler(base_lr=args.lr, step=[40, 60],
-                               factor=0.5, warmup_epoch=10,
-                               warmup_begin_lr=0.000008)  # Make sure warmup_begin_lr is smaller than base_lr.
+    if args.warmup:
+        lr_scheduler = LRScheduler(base_lr=args.lr, step=[40, 60],
+                                   factor=0.5, warmup_epoch=10,
+                                   warmup_begin_lr=0.000008)  # Make sure warmup_begin_lr is smaller than base_lr.
+    else:
+        # # Decay LR by a factor of 0.1 every 30 epochs
+        # lr_scheduler = lrscheduler.StepLR(optimizer_ft, step_size=30, gamma=0.1)  # None
+        lr_scheduler = lrscheduler.MultiStepLR(optimizer_ft, milestones=[40, 60], gamma=0.1)
 
     # Create a folder to save the trained model in
     dir_name = os.path.join(args.f_name, args.m_name)
