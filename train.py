@@ -322,7 +322,7 @@ def main():
                       id(p) not in base_param_ids]
         param_groups = [
             {'params': filter(lambda p: p.requires_grad, model.backbone.parameters()), 'lr_mult': 0.1*args.lr},
-            {'params': filter(lambda p: p.requires_grad, new_params), 'lr_mult': 1.0}]
+            {'params': filter(lambda p: p.requires_grad, new_params), 'lr_mult': args.lr}]
         # param_groups = [
         #     {'params': filter(lambda p: p.requires_grad, model.backbone.parameters()), 'lr': 0.1*args.lr},
         #     {'params': filter(lambda p: p.requires_grad, new_params), 'lr': args.lr}]
