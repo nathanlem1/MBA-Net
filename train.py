@@ -11,6 +11,7 @@ import torch.nn as nn
 from torch.optim import lr_scheduler as lrscheduler
 from torchvision import datasets, transforms
 import torch.backends.cudnn as cudnn
+# from torch.cuda import amp   # This can be used (even recommended!) instead of apex.amp
 import yaml
 
 import matplotlib

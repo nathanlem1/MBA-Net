@@ -1,3 +1,8 @@
+"""
+You can also use torchvision.transforms.RandomErasing:
+    https://docs.pytorch.org/vision/main/generated/torchvision.transforms.RandomErasing.html
+"""
+
 import math
 import random
 
