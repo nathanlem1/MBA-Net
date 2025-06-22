@@ -18,10 +18,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('agg')
 
-from label_smoothing_cross_entropy_loss import LabelSmoothingCrossEntropyLoss
-from lr_scheduler import LRScheduler
 from model.MBA import ResNet50_MBA
-from random_erasing import RandomErasing
+from utils.label_smoothing_cross_entropy_loss import LabelSmoothingCrossEntropyLoss
+from utils.lr_scheduler import LRScheduler
+from utils.random_erasing import RandomErasing
 
 version = torch.__version__
 

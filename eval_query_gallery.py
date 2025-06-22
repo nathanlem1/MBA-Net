@@ -7,7 +7,7 @@ from torchvision import datasets, transforms
 import scipy.io
 import yaml
 
-from evaluation_metrics import compute_CMC_mAP
+from utils.evaluation_metrics import compute_CMC_mAP
 from model.MBA import ResNet50_MBA
 
 try:
