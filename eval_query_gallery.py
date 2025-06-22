@@ -7,8 +7,8 @@ from torchvision import datasets, transforms
 import scipy.io
 import yaml
 
-from utils.evaluation_metrics import compute_CMC_mAP
 from model.MBA import ResNet50_MBA
+from utils.evaluation_metrics import compute_CMC_mAP
 
 try:
     from apex.fp16_utils import *
