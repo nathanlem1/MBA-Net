@@ -35,12 +35,15 @@ except ImportError:  # will be 3.x series
           'support (https://github.com/NVIDIA/apex)')
 
 
-def set_seed(seed):
+def set_seed(seed: int = 42):
     """
     Set the random seed for reproducibility across Python, NumPy, and PyTorch.
 
     Parameters:
-        seed (int): The seed value to use.
+        seed (int): The seed value to use. You can set the seed to any fixed value.
+    Read more on:
+        https://docs.pytorch.org/docs/stable/notes/randomness.html
+        https://medium.com/@heyamit10/pytorch-reproducibility-a-practical-guide-d6f573cba679
     """
     # Set the seed for Python's built-in random module
     random.seed(seed)
@@ -51,13 +54,18 @@ def set_seed(seed):
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
     # Ensure deterministic behavior in cuDNN (may impact performance)
-    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.deterministic = True  # Disable CuDNN's non-deterministic optimizations.
     torch.backends.cudnn.benchmark = False  # If True, it causes cuDNN to benchmark multiple convolution algorithms and
     # select the fastest. For PyTorch reproducibility, you need to set to False at cost of slightly lower run-time
     # performance but easy for experimentation.
 
-    # Set seed to for os.environ
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    # Avoiding nondeterministic algorithms
+    torch.use_deterministic_algorithms(True)
+
+    # Set seed to for os.environ, which is a mapping object that represents the user’s OS environmental variables.
+    os.environ['PYTHONHASHSEED'] = str(seed) # pythonhashseed is randomly generated when you create a variable in Python
+
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
 
 # Train model
@@ -240,7 +248,7 @@ def main():
 
     # For reproducibility
     if args.is_repr:
-        seed = 3  # You can set the seed to any fixed value.
+        seed = 42  # You can set the seed to any fixed value.
         set_seed(seed)
     else:
         cudnn.benchmark = True  # If True, causes cuDNN to benchmark multiple convolution algorithms and select the
