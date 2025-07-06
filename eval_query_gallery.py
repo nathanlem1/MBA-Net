@@ -10,12 +10,6 @@ import yaml
 from model.MBA import ResNet50_MBA
 from utils.evaluation_metrics import compute_CMC_mAP
 
-try:
-    from apex.fp16_utils import *
-except ImportError:  # will be 3.x series
-    print('This is not an error. If you want to use low precision, i.e., fp16, please install the apex with cuda '
-          'support (https://github.com/NVIDIA/apex)')
-
 
 # Load model
 def load_network(network, args):
@@ -90,8 +84,10 @@ def get_id(img_path):
     for path, v in img_path:
         # filename = os.path.basename(path)
         # label = filename.split('_')[0]
-        label = path.split('/')[-2]  # For 11k hand data set, on Linux
-        # label = path.split('\\')[-2]  # For 11k hand data set, on Windows
+        if os.name == 'nt':
+            label = path.split('\\')[-2]  # For 11k hand data set, on Windows
+        else:
+            label = path.split('/')[-2]  # For 11k hand data set, on Linux
         labels.append(int(label))
     return labels
 
@@ -111,13 +107,12 @@ def main():
                              './model_11k_d_r  ./model_11k_d_l  ./model_11k_p_r  ./model_11k_p_l'  # For 11k
                              'or ./model_HD'   # For HD
                              'Note: Adjust the data-type in opts.yaml when evaluating cross-domain performance.')
-    parser.add_argument('--m_name', default='ResNet50_MBA', type=str,
+    parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
                         help='Saved model name - ResNet50_MBA for ResNet50 with MBA model.')
     parser.add_argument('--which_epoch', default='best', type=str, help='0,1,2,3...or best')
     parser.add_argument('--batch_size', default=14, type=int, help='batch_size')  # 256, 40
     parser.add_argument('--num_workers', default=0, type=int,
                         help='Number of workers to use: 0, 4, 8, etc. Setting to 8 workers may run faster.')
-    parser.add_argument('--fp16', action='store_true', help='use fp16.')
     parser.add_argument('--gpu_ids', default='0', type=str, help='gpu_ids: e.g. 0  0,1,2  0,2')
 
     # Args
@@ -130,7 +125,6 @@ def main():
 
     with open(config_path, 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
-    args.fp16 = config['fp16']
     args.data_type = config['data_type']
     args.part_h = config['part_h']
     args.part_v = config['part_v']
