@@ -11,7 +11,6 @@ import torch.nn as nn
 from torch.optim import lr_scheduler as lrscheduler
 from torchvision import datasets, transforms
 import torch.backends.cudnn as cudnn
-# from torch.cuda import amp   # This can be used (even recommended!) instead of apex.amp
 import yaml
 
 import matplotlib
@@ -24,15 +23,6 @@ from utils.lr_scheduler import LRScheduler
 from utils.random_erasing import RandomErasing
 
 version = torch.__version__
-
-
-# Use fp16 for faster training with low precision
-try:
-    from apex.fp16_utils import *
-    from apex import amp, optimizers
-except ImportError:  # will be 3.x series
-    print('This is not an error. If you want to use low precision, i.e., fp16, please install the apex with cuda '
-          'support (https://github.com/NVIDIA/apex)')
 
 
 def set_seed(seed: int = 42):
@@ -69,7 +59,7 @@ def set_seed(seed: int = 42):
 
 
 # Train model
-def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, num_epochs=70):
+def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, scaler, num_epochs=70):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -115,6 +105,9 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, n
                 if phase == 'val':
                     with torch.no_grad():
                         outputs = model(inputs)
+                elif args.fp16 or args.bf16:
+                    with torch.amp.autocast(device_type='cuda', dtype=torch.float16 if args.fp16 else torch.bfloat16):
+                        outputs = model(inputs)
                 else:
                     outputs = model(inputs)
 
@@ -132,12 +125,13 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, n
 
                 # Backward + optimize only if in training phase
                 if phase == 'train':
-                    if args.fp16:  # We use optimizer to backward loss
-                        with amp.scale_loss(loss, optimizer) as scaled_loss:
-                            scaled_loss.backward()
+                    if args.fp16 or args.bf16:  # We use optimizer to backward loss
+                        scaler.scale(loss).backward()
+                        scaler.step(optimizer)  # a safety optimizer.step()
+                        scaler.update()
                     else:
                         loss.backward()
-                    optimizer.step()
+                        optimizer.step()
 
                 # Statistics
                 if int(version[0]) > 0 or int(version[2]) > 3:  # for the new version like 0.4.0, 0.5.0 and 1.0.0
@@ -217,7 +211,7 @@ def main():
                         help='Output folder name - ./model_HD or '  # For HD dataset
                              './model_11k_d_r'  './model_11k_d_l'  './model_11k_p_r'  './model_11k_p_l')  # For 11k
     parser.add_argument('--data_type', default='11k', type=str, help='Data type: 11k or HD')
-    parser.add_argument('--m_name', default='ResNet50_MBA', type=str,
+    parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
                         help='Output model name - ResNet50_MBA for ResNet50 with MBA model.')
     parser.add_argument('--train_all', action='store_true', help='use all training data')
     parser.add_argument('--batch_size', default=4, type=int, help='batch_size')  # 10, 20, 32, etc
@@ -241,8 +235,12 @@ def main():
                         help='Use relative positional encodings.')
     parser.add_argument('--is_repr', action='store_true', default=True,
                         help='For reproducibility during experimentation, for instance, for hyper-parameters tuning.')
-    parser.add_argument('--fp16', action='store_true',
-                        help='Use float16 instead of float32, which will save about 50% memory')
+    parser.add_argument('--fp16', action='store_true', default=False,
+                        help='Use float16 instead of float32, which will save about 50% memory. Set either of '
+                             'fp16 or bf16 to True, not both, automatic mixed precision (amp).')
+    parser.add_argument('--bf16', action='store_true', default=False,
+                        help='Use bfloat16 instead of float32, which will save about 50% memory. Set either of '
+                             'fp16 or bf16 to True, not both, to use automatic mixed precision (amp).')
     parser.add_argument('--gpu_ids', default='0', type=str, help='Which GPUs to use - gpu_ids: e.g. 0  0,1,2  0,2')
     args = parser.parse_args()
 
@@ -379,10 +377,6 @@ def main():
         # model = torch.nn.DataParallel(model, device_ids=[0]).cuda()
         model = model.cuda()
 
-    # Use fp16
-    if args.fp16:
-        model, optimizer_ft = amp.initialize(model, optimizer_ft, opt_level="O1")
-
     # Define loss function
     if args.ls:
         criterion = LabelSmoothingCrossEntropyLoss()
@@ -402,8 +396,11 @@ def main():
     ax0 = fig.add_subplot(121, title="loss")
     ax1 = fig.add_subplot(122, title="top1err")
 
+    # Using torch amp (automatic mixed precision)
+    scaler = torch.cuda.amp.GradScaler()
+
     # Train and save the best model
-    model = train_model(model, criterion, lr_scheduler, optimizer_ft, args, data_loaders, num_epochs=70)  # 60, 70, 200
+    model = train_model(model, criterion, lr_scheduler, optimizer_ft, args, data_loaders, scaler, num_epochs=70)  # 70
 
 
 # Execute from the interpreter
