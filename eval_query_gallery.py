@@ -107,7 +107,7 @@ def main():
                              './model_11k_d_r  ./model_11k_d_l  ./model_11k_p_r  ./model_11k_p_l'  # For 11k
                              'or ./model_HD'   # For HD
                              'Note: Adjust the data-type in opts.yaml when evaluating cross-domain performance.')
-    parser.add_argument('--m_name', default='ResNet50_MBA1', type=str,
+    parser.add_argument('--m_name', default='ResNet50_MBA', type=str,
                         help='Saved model name - ResNet50_MBA for ResNet50 with MBA model.')
     parser.add_argument('--which_epoch', default='best', type=str, help='0,1,2,3...or best')
     parser.add_argument('--batch_size', default=14, type=int, help='batch_size')  # 256, 40
