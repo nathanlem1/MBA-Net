@@ -106,7 +106,8 @@ def train_model(model, criterion, lr_scheduler, optimizer, args, data_loaders, s
                     with torch.no_grad():
                         outputs = model(inputs)
                 elif args.fp16 or args.bf16:
-                    with torch.amp.autocast(device_type='cuda', dtype=torch.float16 if args.fp16 else torch.bfloat16):
+                    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+                    with torch.amp.autocast(device_type=device, dtype=torch.float16 if args.fp16 else torch.bfloat16):
                         outputs = model(inputs)
                 else:
                     outputs = model(inputs)
